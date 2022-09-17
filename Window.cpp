@@ -33,19 +33,55 @@ Window::~Window() {
 			SDL_DestroyTexture(pieces[i]);*/
 }
 
-void Window::draw_piece(uint64_t bit_board, char piece) {
+void Window::draw_piece(uint64_t bit_board[]) {
 
 	SDL_Rect rect = { 0, 0, piece_size, piece_size };
-
-	for (int i = 0; i < 64; i++) {
-		if (bit_board & 1) {
-			rect.x = i % 8 * rect.w + padding;
-			rect.y = i / 8 * rect.w + padding;
-			SDL_RenderCopy(renderer, piece_map[piece], NULL, &rect);
+	for (int i = 0; i < 12; i++) {
+		uint64_t p = bit_board[i];
+		char x;
+		switch (i) {
+		case 0: x = 'K'; break;
+		case 1: x = 'P'; break;
+		case 2: x = 'N'; break;
+		case 3: x = 'R'; break;
+		case 4: x = 'B'; break;
+		case 5: x = 'Q'; break;
+		case 6: x = 'k'; break;
+		case 7: x = 'p'; break;
+		case 8: x = 'n'; break;
+		case 9: x = 'r'; break;
+		case 10: x = 'b'; break;
+		case 11: x = 'q'; break;
 		}
-		bit_board = bit_board >> 1;
+		while (p) {
+			uint32_t index = long_bit_scan(p);
+			rect.x = index % 8 * rect.w + padding;
+			rect.y = index / 8 * rect.w + padding;
+			SDL_RenderCopy(renderer, piece_map[x], NULL, &rect);
+			p &= p - 1;
+		}
+
 	}
 }
+
+
+uint32_t Window::bit_scan(uint32_t i) {
+	i = ~i & (i - 1);
+	if (i <= 0) return i & 32;
+	uint32_t n = 1;
+	if (i > 1 << 16) { n += 16; i >>= 16; }
+	if (i > 1 << 8) { n += 8; i >>=  8; }
+	if (i > 1 << 4) { n += 4; i >>=  4; }
+	if (i > 1 << 2) { n += 2; i >>=  2; }
+	return n + (i >> 1);
+}
+
+uint32_t Window::long_bit_scan(uint64_t i) {
+	uint32_t x = (uint32_t)i;
+	return x == 0 ? 32 + Window::bit_scan((uint32_t)(i >> 32))
+		: Window::bit_scan(x);
+}
+
 
 void Window::draw_test() {}
 

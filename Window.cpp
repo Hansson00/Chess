@@ -35,7 +35,7 @@ Window::~Window() {
 
 void Window::draw_piece(uint64_t bit_board, char piece) {
 
-	SDL_Rect rect= { 0,0,  piece_size , piece_size };
+	SDL_Rect rect = { 0, 0, piece_size, piece_size };
 
 	for (int i = 0; i < 64; i++) {
 		if (bit_board & 1) {
@@ -45,12 +45,9 @@ void Window::draw_piece(uint64_t bit_board, char piece) {
 		}
 		bit_board = bit_board >> 1;
 	}
-		
-
 }
 
-void Window::draw_test() {
-}
+void Window::draw_test() {}
 
 void Window::draw_board() {
 	SDL_Rect rect = { 0,0,  width , height};
@@ -71,14 +68,14 @@ void Window::generate_board_texture(int width, int heigh) {
 	rect.y = padding - mini_padding;
 	rect.w = 1000 - (padding - mini_padding) * 2; 
 	rect.h = 1000 - (padding - mini_padding) * 2;
-	SDL_FillRect(surface, &rect, 0xffffff);
+	SDL_FillRect(surface, &rect, 0xffffff); // draw all white squares background
 
 	piece_size = (width - (padding) * 2) / 8;
 
 	rect.w = piece_size;
 	rect.h = piece_size;
 
-	for (int i = 0; i < 64; i++)
+	for (int i = 0; i < 64; i++)			// draw all green squares
 		if (((i + i / 8) % 2) % 2 == 1) {
 			rect.x = i % 8 * rect.w + padding;
 			rect.y = i / 8 * rect.w + padding;
@@ -92,7 +89,6 @@ void Window::generate_board_texture(int width, int heigh) {
 }
 
 void Window::generate_textures() {
-
 	
 	//pieces = new SDL_Texture* [12];
 	SDL_Surface* surface;	
@@ -107,6 +103,4 @@ void Window::generate_textures() {
 		SDL_FreeSurface(surface);
 		i++;
 	}
-	
-
 }

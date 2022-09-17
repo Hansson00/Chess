@@ -7,7 +7,9 @@ Engine::Engine() {
 
 	window->draw_board();
 	window->draw_piece(0xff000000000000ll, 'P');
+	window->draw_piece(0x81ll, 'r');
 	window->draw_piece(0xff00ll, 'p');
+	window->draw_piece(0x8100000000000000ll, 'R');
 	window->update();
 }
 

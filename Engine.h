@@ -12,7 +12,5 @@ public:
 	Window* window;
 
 	void events();
-
-
 };
 

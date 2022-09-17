@@ -34,4 +34,3 @@ private:
 	void generate_textures();
 	void generate_board_texture(int width, int height);
 };
-

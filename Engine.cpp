@@ -48,9 +48,9 @@ void Engine::fenInit(std::string fen, Position* pos) {
             case 'k': pos -> pieceBoards[6] |= 1ULL << i; break;
             case 'p': pos -> pieceBoards[7] |= 1ULL << i; break;
             case 'n': pos -> pieceBoards[8] |= 1ULL << i; break;
-            case 'b': pos -> pieceBoards[10] |= 1ULL << i; break;
+            case 'b': pos -> pieceBoards[10]|= 1ULL << i; break;
             case 'r': pos -> pieceBoards[9] |= 1ULL << i; break;
-            case 'q': pos -> pieceBoards[11] |= 1ULL << i; break;
+            case 'q': pos -> pieceBoards[11]|= 1ULL << i; break;
             case '/': i--; break;
             default: i += f - 49; break;
             }

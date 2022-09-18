@@ -9,7 +9,7 @@
 
 class Window {
 public:
-	Window(int window_width, int window_height);
+	Window(uint32_t window_width, uint32_t window_height);
 	~Window();
 
 	void draw_piece(uint64_t bit_board[]);
@@ -23,8 +23,7 @@ private:
 	
 	SDL_Window* window;
 	SDL_Renderer* renderer;
-	//SDL_Texture** pieces;
-	std::map<char, SDL_Texture*> piece_map;
+	SDL_Texture** pieces;
 
 	SDL_Texture* board;
 
@@ -34,5 +33,5 @@ private:
 	int piece_size;
 
 	void generate_textures();
-	void generate_board_texture(int width, int height);
+	void generate_board_texture();
 };

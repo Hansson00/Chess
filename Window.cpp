@@ -1,6 +1,6 @@
 #include "Window.h"
 
-Window::Window(int window_width, int window_height) {
+Window::Window(uint32_t window_width, uint32_t window_height) {
 
 	width = window_width;
 	height = window_height;
@@ -15,7 +15,7 @@ Window::Window(int window_width, int window_height) {
 		std::cout << "Cound not init Window... \n";
 	
 	generate_textures();
-	generate_board_texture(1000, 1000);
+	generate_board_texture();
 
 }
 
@@ -24,43 +24,24 @@ Window::~Window() {
 	SDL_DestroyRenderer(renderer);
 
 	SDL_DestroyTexture(board);
-	for (auto it : piece_map)
-		SDL_DestroyTexture(it.second);
-	piece_map.clear();
 
-	/*for (int i = 0; i < 12; i++)
+	for (uint32_t i = 0; i < 12; i++)
 		if (pieces[i] != nullptr)
-			SDL_DestroyTexture(pieces[i]);*/
+			SDL_DestroyTexture(pieces[i]);
 }
 
-void Window::draw_piece(uint64_t bit_board[]) {
+void Window::draw_piece(uint64_t* bit_board) {
 
 	SDL_Rect rect = { 0, 0, piece_size, piece_size };
 	for (int i = 0; i < 12; i++) {
 		uint64_t p = bit_board[i];
-		char x;
-		switch (i) {
-		case 0: x = 'K'; break;
-		case 1: x = 'P'; break;
-		case 2: x = 'N'; break;
-		case 3: x = 'R'; break;
-		case 4: x = 'B'; break;
-		case 5: x = 'Q'; break;
-		case 6: x = 'k'; break;
-		case 7: x = 'p'; break;
-		case 8: x = 'n'; break;
-		case 9: x = 'r'; break;
-		case 10: x = 'b'; break;
-		case 11: x = 'q'; break;
-		}
 		while (p) {
 			uint32_t index = long_bit_scan(p);
 			rect.x = index % 8 * rect.w + padding;
 			rect.y = index / 8 * rect.w + padding;
-			SDL_RenderCopy(renderer, piece_map[x], NULL, &rect);
+			SDL_RenderCopy(renderer, pieces[i], NULL, &rect);
 			p &= p - 1;
 		}
-
 	}
 }
 
@@ -82,7 +63,6 @@ uint32_t Window::long_bit_scan(uint64_t i) {
 		: Window::bit_scan(x);
 }
 
-
 void Window::draw_test() {}
 
 void Window::draw_board() {
@@ -94,10 +74,10 @@ void Window::update() {
 	SDL_RenderPresent(renderer);
 }
 
-void Window::generate_board_texture(int width, int heigh) {
+void Window::generate_board_texture() {
 	
-	int mini_padding = 1;
-	SDL_Surface * surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+	uint32_t mini_padding = 1;
+	SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
 	SDL_Rect rect = { 0, 0, width, height };
 	SDL_FillRect(surface, &rect, 0x0000ff); // draw blue background
 	rect.x = padding - mini_padding;
@@ -126,16 +106,29 @@ void Window::generate_board_texture(int width, int heigh) {
 
 void Window::generate_textures() {
 	
-	//pieces = new SDL_Texture* [12];
+	pieces = new SDL_Texture* [12];
 	SDL_Surface* surface;	
 
-	int i = 0;
+	uint32_t i = 0;
 	std::string path = "./pieces";
 	for (const auto& entry : std::filesystem::directory_iterator(path)) {
 		std::string str = entry.path().string();
 		surface = IMG_Load(str.c_str());
-		//pieces[i] = SDL_CreateTextureFromSurface(renderer, surface);
-		piece_map[str[11]] = SDL_CreateTextureFromSurface(renderer, surface);
+		switch (str[11]) {
+		case 'K': pieces[0]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'P': pieces[1]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'N': pieces[2]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'B': pieces[3]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'R': pieces[4]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'Q': pieces[5]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'k': pieces[6]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'p': pieces[7]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'n': pieces[8]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'b': pieces[9]  = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'r': pieces[10] = SDL_CreateTextureFromSurface(renderer, surface); break;
+		case 'q': pieces[11] = SDL_CreateTextureFromSurface(renderer, surface); break;
+		default: break;
+		}
 		SDL_FreeSurface(surface);
 		i++;
 	}

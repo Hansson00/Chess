@@ -37,7 +37,7 @@ void Engine::fenInit(std::string fen, Position* pos) {
     for(int j = 0; j < 12; j++)
         pos->pieceBoards[j] = 0;
     for (char f : fen) {
-        if (i < 63) {
+        if (i < 64) {
             switch (f) {
             case 'K': pos -> pieceBoards[0] |= 1ULL << i; break;
             case 'P': pos -> pieceBoards[1] |= 1ULL << i; break;

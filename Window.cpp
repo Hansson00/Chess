@@ -16,7 +16,7 @@ Window::Window(uint32_t window_width, uint32_t window_height) {
 	
 	generate_textures();
 	generate_board_texture();
-	draw_test();
+	generate_attack_square();
 }
 
 Window::~Window() {

@@ -30,7 +30,7 @@ Window::~Window() {
 			SDL_DestroyTexture(pieces[i]);
 }
 
-void Window::draw_piece(uint64_t* bit_board) {
+void Window::draw_pieces(uint64_t* bit_board) {
 
 	SDL_Rect rect = { 0, 0, piece_size, piece_size };
 	for (int i = 0; i < 12; i++) {
@@ -44,7 +44,6 @@ void Window::draw_piece(uint64_t* bit_board) {
 		}
 	}
 }
-
 
 uint32_t Window::bit_scan(uint32_t i) {
 	i = ~i & (i - 1);
@@ -72,6 +71,21 @@ void Window::draw_board() {
 
 void Window::update() {
 	SDL_RenderPresent(renderer);
+}
+
+void Window::mouse_grid_pos(int* x, int* y) {
+	*x = *x < padding ? 8 : (int)(*x - padding) / piece_size;
+	*y = *y < padding ? 8 : (int)(*y - padding) / piece_size;
+}
+
+void Window::draw_piece_at_mouse(int piece) {
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	SDL_Rect rect = { 0, 0, piece_size, piece_size };
+	rect.x = x - piece_size / 2;
+	rect.y = y - piece_size / 2;
+	SDL_RenderCopy(renderer, pieces[piece], NULL, &rect);
+
 }
 
 void Window::generate_board_texture() {

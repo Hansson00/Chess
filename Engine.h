@@ -22,11 +22,20 @@ public:
 	Engine();
 	~Engine();
 
+	Position pos;
+
 	bool running = true;
 	Window* window;
 
 	void events();
 	void fenInit(std::string, Position* pos);
+
+private:
+	int mouse_x, mouse_y = 0;
+	uint8_t held_piece = -1;
+	uint64_t held_piece_board = 0;
+	void mouse_event(uint8_t button, bool mouse_down);
+
 };
 
 

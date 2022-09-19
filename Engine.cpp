@@ -4,12 +4,8 @@ Engine::Engine() {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
     window = new Window(1000, 1000);
-    Position pos;
        
     fenInit("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq", &pos);
-	window->draw_board();
-	window->draw_piece(pos.pieceBoards);
-	window->update();
 }
 
 Engine::~Engine() {
@@ -20,17 +16,27 @@ Engine::~Engine() {
 void Engine::events() {
 
 	SDL_Event sdl_event;
-	SDL_PollEvent(&sdl_event);
+    while (SDL_PollEvent(&sdl_event)) {
+        switch (sdl_event.type) {
+        case SDL_MOUSEBUTTONDOWN:  
+            mouse_event(sdl_event.button.button, true);
+            break;
+        case SDL_MOUSEBUTTONUP:
+            mouse_event(sdl_event.button.button, false);
+            break;
+        case SDL_QUIT:
+            running = false;
+            break;
+        default:
+            break;
+        }
+    }
 
-	switch (sdl_event.type) {
-	case SDL_QUIT:
-		running = false;
-		break;
-	default:
-		break;
-	}
+    window->draw_board();
+    window->draw_pieces(pos.pieceBoards);
+    if (held_piece != 255) window->draw_piece_at_mouse(held_piece);
+    window->update();
 }
-
 
 void Engine::fenInit(std::string fen, Position* pos) {
     uint32_t i = 0;
@@ -48,8 +54,8 @@ void Engine::fenInit(std::string fen, Position* pos) {
             case 'k': pos -> pieceBoards[6] |= 1ULL << i; break;
             case 'p': pos -> pieceBoards[7] |= 1ULL << i; break;
             case 'n': pos -> pieceBoards[8] |= 1ULL << i; break;
-            case 'b': pos -> pieceBoards[10]|= 1ULL << i; break;
-            case 'r': pos -> pieceBoards[9] |= 1ULL << i; break;
+            case 'b': pos -> pieceBoards[9]|= 1ULL << i; break;
+            case 'r': pos -> pieceBoards[10] |= 1ULL << i; break;
             case 'q': pos -> pieceBoards[11]|= 1ULL << i; break;
             case '/': i--; break;
             default: i += f - 49; break;
@@ -70,5 +76,47 @@ void Engine::fenInit(std::string fen, Position* pos) {
         }
     }
 }
+
+void Engine::mouse_event(uint8_t button, bool mouse_down) {
+    int x, y;
+    SDL_GetMouseState(&x, &y);
+    window->mouse_grid_pos(&x, &y);
+    if (button == 1) { // x and y is within the board
+
+        int tmp = (x + y * 8);
+        uint64_t mouse_pos = 1Ull << (x + y * 8);
+
+        if (mouse_down && x < 8 && y < 8) { // Pick up piece
+            int idx = 0;
+            for (uint64_t it : pos.pieceBoards) {
+                uint64_t tmp1= (mouse_pos & it);
+                if ((mouse_pos & it) != 0) {
+                    held_piece = idx;
+                    held_piece_board = it;
+                    pos.pieceBoards[idx] = it - mouse_pos; // removes piece
+                    break;
+                }
+                idx++;
+            }
+        }
+        else { // Place piece
+            if (x < 8 && y < 8 && held_piece != -1) { // Check if this legal is as well
+                int idx = 0;
+                for (uint64_t it : pos.pieceBoards) {
+                    if ((mouse_pos & it) != 0) {
+                        pos.pieceBoards[idx] = it - mouse_pos;
+                    }
+                    idx++;
+                }
+                pos.pieceBoards[held_piece] |= mouse_pos;
+            }
+            else {
+                pos.pieceBoards[held_piece] = held_piece_board;
+            }
+            held_piece = -1;
+        }
+    }
+}
+
 
 

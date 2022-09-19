@@ -4,7 +4,9 @@
 Chess::Chess() {
     SDL_Init(SDL_INIT_EVERYTHING);
     window = new Window(1000, 1000);
+    sound = new Sound_Manager();
     engine = new Engine();
+
 }
 
 void Chess::main_loop() {
@@ -13,6 +15,7 @@ void Chess::main_loop() {
         events();
         // make a draw function
         window->draw_board();
+        window->draw_attack_sqaure(20, 20);
         window->draw_pieces(engine->pos.pieceBoards);
         if (held_piece != 255) window->draw_piece_at_mouse(held_piece);
         window->update();
@@ -66,6 +69,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                         break;
                     }
                 engine->pos.pieceBoards[held_piece] |= mouse_pos;
+                sound->move->play_sound();
             }
             else if(held_piece != 255) {
                 engine->pos.pieceBoards[held_piece] = held_piece_board;

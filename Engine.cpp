@@ -4,7 +4,6 @@ Engine::Engine() {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
     window = new Window(1000, 1000);
-       
     fenInit("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq", &pos);
 }
 
@@ -13,6 +12,7 @@ Engine::~Engine() {
 	SDL_Quit();
 }
 
+/*
 void Engine::events() {
 
 	SDL_Event sdl_event;
@@ -31,12 +31,8 @@ void Engine::events() {
             break;
         }
     }
-
-    window->draw_board();
-    window->draw_pieces(pos.pieceBoards);
-    if (held_piece != 255) window->draw_piece_at_mouse(held_piece);
-    window->update();
 }
+*/
 
 void Engine::fenInit(std::string fen, Position* pos) {
     uint32_t i = 0;
@@ -77,6 +73,19 @@ void Engine::fenInit(std::string fen, Position* pos) {
     }
 }
 
+void Engine::main_loop() {
+
+    while (running) {
+        events(window, &pos);
+
+        // make a draw function
+        window->draw_board();
+        window->draw_pieces(pos.pieceBoards);
+        if (Events::held_piece != 255) window->draw_piece_at_mouse(Events::held_piece);
+        window->update();
+    }
+}
+/*
 void Engine::mouse_event(uint8_t button, bool mouse_down) {
     int x, y;
     SDL_GetMouseState(&x, &y);
@@ -112,6 +121,7 @@ void Engine::mouse_event(uint8_t button, bool mouse_down) {
         }
     }
 }
+*/
 
 
 

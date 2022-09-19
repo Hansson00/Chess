@@ -4,7 +4,6 @@
 #include "string"
 #include <filesystem>
 #include "SDL_image.h"
-#include "map"
 
 
 class Window {

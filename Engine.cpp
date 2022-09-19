@@ -87,27 +87,22 @@ void Engine::mouse_event(uint8_t button, bool mouse_down) {
         uint64_t mouse_pos = 1Ull << (x + y * 8);
 
         if (mouse_down && x < 8 && y < 8) { // Pick up piece
-            int idx = 0;
-            for (uint64_t it : pos.pieceBoards) {
-                uint64_t tmp1= (mouse_pos & it);
-                if ((mouse_pos & it) != 0) {
-                    held_piece = idx;
-                    held_piece_board = it;
-                    pos.pieceBoards[idx] = it - mouse_pos; // removes piece
+            
+            for (int i = 0; i < 12; i++)
+                if ((mouse_pos & pos.pieceBoards[i]) != 0) {
+                    held_piece = i;
+                    held_piece_board = pos.pieceBoards[i];
+                    pos.pieceBoards[i] -= mouse_pos;
                     break;
                 }
-                idx++;
-            }
         }
         else { // Place piece
             if (x < 8 && y < 8 && held_piece != -1) { // Check if this legal is as well
-                int idx = 0;
-                for (uint64_t it : pos.pieceBoards) {
-                    if ((mouse_pos & it) != 0) {
-                        pos.pieceBoards[idx] = it - mouse_pos;
+                for (int i = 0; i < 12; i++) 
+                    if ((mouse_pos & pos.pieceBoards[i]) != 0) {
+                        pos.pieceBoards[i] -= mouse_pos;
+                        break;
                     }
-                    idx++;
-                }
                 pos.pieceBoards[held_piece] |= mouse_pos;
             }
             else {

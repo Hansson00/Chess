@@ -97,7 +97,7 @@ void Engine::mouse_event(uint8_t button, bool mouse_down) {
                 }
         }
         else { // Place piece
-            if (x < 8 && y < 8 && held_piece != -1) { // Check if this legal is as well
+            if (x < 8 && y < 8 && held_piece != 255) { // Check if this legal is as well
                 for (int i = 0; i < 12; i++) 
                     if ((mouse_pos & pos.pieceBoards[i]) != 0) {
                         pos.pieceBoards[i] -= mouse_pos;
@@ -105,10 +105,10 @@ void Engine::mouse_event(uint8_t button, bool mouse_down) {
                     }
                 pos.pieceBoards[held_piece] |= mouse_pos;
             }
-            else {
+            else if(held_piece != 255) {
                 pos.pieceBoards[held_piece] = held_piece_board;
             }
-            held_piece = -1;
+            held_piece = 255;
         }
     }
 }

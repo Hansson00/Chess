@@ -2,7 +2,7 @@
 #include "SDL.h"
 #include "Window.h"
 #include "Engine.h"
-#include "Position.h"
+#include "Chess_utility.h"
 
 class Chess {
 

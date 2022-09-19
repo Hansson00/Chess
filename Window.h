@@ -4,6 +4,7 @@
 #include "string"
 #include <filesystem>
 #include "SDL_image.h"
+#include "Chess_utility.h"
 
 
 class Window {
@@ -12,8 +13,6 @@ public:
 	~Window();
 
 	void draw_pieces(uint64_t bit_board[]);
-	uint32_t bit_scan(uint32_t);
-	uint32_t long_bit_scan(uint64_t);
 	void draw_test();
 	void draw_board();
 	void update();

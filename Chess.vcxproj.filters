@@ -30,6 +30,9 @@
     <ClCompile Include="Move_Generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Chess_utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -38,7 +41,7 @@
     <ClInclude Include="Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Position.h">
+    <ClInclude Include="Chess_utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Chess.h">

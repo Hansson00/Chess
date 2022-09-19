@@ -147,14 +147,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Chess.cpp" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="Events.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Chess.h" />
     <ClInclude Include="Engine.h" />
-    <ClInclude Include="Events.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

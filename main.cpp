@@ -1,15 +1,15 @@
 #include "SDL.h"
-#include "Engine.h"
+#include "Chess.h"
 
 
-Engine* engine;
+Chess* chess;
 
 int main(int argc, char* argv[]) {
-	engine = new Engine();
+	chess = new Chess();
 
-	engine->main_loop();
+	chess->main_loop();
 	
-	delete(engine);
+	delete(chess);
 
 	return 0;
 }

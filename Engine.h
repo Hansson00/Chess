@@ -1,23 +1,18 @@
 #pragma once
 #include "Window.h"
 #include "SDL.h"
-#include "Events.h"
 #include "Position.h"
 
 
-class Engine : Events{
+class Engine{
 
 public:
 	Engine();
 	~Engine();
-	void main_loop();
+	Position pos;
+	void fenInit(std::string);
 
 private:
-	Position pos;
-	Window* window;
-
-	void fenInit(std::string, Position* pos);
-
 
 };
 

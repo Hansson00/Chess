@@ -8,7 +8,6 @@ Engine::~Engine() {
 
 }
 
-
 void Engine::fenInit(std::string fen) {
     uint32_t i = 0;
     for(int j = 0; j < 12; j++)

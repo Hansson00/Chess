@@ -150,11 +150,13 @@
     <ClCompile Include="Chess.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Move_Generator.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Chess.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="Move_Generator.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

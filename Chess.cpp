@@ -11,7 +11,6 @@ void Chess::main_loop() {
 
     while (running) {
         events();
-
         // make a draw function
         window->draw_board();
         window->draw_pieces(engine->pos.pieceBoards);

@@ -2,6 +2,7 @@
 #include "SDL.h"
 #include "Window.h"
 #include "Engine.h"
+#include "Sound.h"
 #include "Chess_utility.h"
 
 class Chess {
@@ -15,6 +16,8 @@ public:
 	void main_loop();
 
 private:
+	Sound_Manager* sound;
+
 	void events();
 	bool running = true;
 	uint64_t held_piece_board = 0;

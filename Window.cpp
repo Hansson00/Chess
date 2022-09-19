@@ -16,7 +16,7 @@ Window::Window(uint32_t window_width, uint32_t window_height) {
 	
 	generate_textures();
 	generate_board_texture();
-
+	generate_attack_square();
 }
 
 Window::~Window() {
@@ -46,7 +46,13 @@ void Window::draw_pieces(uint64_t* bit_board) {
 }
 
 
-void Window::draw_test() {}
+void Window::generate_attack_square() {
+	SDL_Surface* surface = SDL_CreateRGBSurface(0, 120, 120, 32, 0, 0, 0, 0);
+	SDL_Rect rect = { 0, 0, 120, 120};
+	SDL_FillRect(surface, &rect, 0xff0000);
+	this->attack_square = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+}
 
 void Window::draw_board() {
 	SDL_Rect rect = { 0,0,  width , height};
@@ -72,8 +78,15 @@ void Window::draw_piece_at_mouse(int piece) {
 
 }
 
+void Window::draw_attack_sqaure(int x, int y) {
+
+	SDL_Rect rect = { 20, 20,  120 , 120 };
+	SDL_RenderCopy(renderer, attack_square, NULL, &rect);
+
+}
+
 void Window::generate_board_texture() {
-	
+
 	uint32_t mini_padding = 1;
 	SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
 	SDL_Rect rect = { 0, 0, width, height };

@@ -69,7 +69,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                         break;
                     }
                 engine->pos.pieceBoards[held_piece] |= mouse_pos;
-                sound->move->play_sound();
+                sound->play_sound(sound->move);
             }
             else if(held_piece != 255) {
                 engine->pos.pieceBoards[held_piece] = held_piece_board;

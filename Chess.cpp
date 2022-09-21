@@ -84,7 +84,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     engine->pos.teamBoards[1] |= mouse_pos;
                 else
                     engine->pos.teamBoards[2] |= mouse_pos;
-                sound->move->play_sound();
+                sound->play_sound(sound->move);
             }
             else if(held_piece != 255) {
                 engine->pos.pieceBoards[held_piece] = held_piece_board;

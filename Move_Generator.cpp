@@ -10,25 +10,96 @@ Move_Generator::~Move_Generator() {
 }
 
 
-void Move_Generator::generate_pawn_moves(uint16_t* move_list, Position* pos, bool white) {
+uint16_t* Move_Generator::generate_pawn_moves(uint16_t* move_list, Position* pos, bool white) {
 	const uint64_t pawns = white ? pos -> pieceBoards[1] : pos->pieceBoards[7];
+	const uint64_t promoting = white ? pawns & ranks[1] : pawns & ranks[6];
+	const uint64_t non_promoting = pawns & ~promoting;
 	const uint64_t opponent = white ? pos -> teamBoards[2] : pos->teamBoards[1];
-	const uint64_t board = pos->teamBoards[0];
+	const uint64_t non_occupied = ~(pos->teamBoards[0]);
+	const uint64_t start_pawns = white ? ranks[5] : ranks[2]; //Where pawns that are able to move twice will be after one push
 
-	uint64_t push = shift_up(pawns, white) & ~board;
+	uint64_t push = shift_up(non_promoting, white) & non_occupied;
+	uint64_t double_push = shift_up(push & start_pawns, white) & non_occupied;
 
 	const int back = white ? 8 : -8;
 	while (push) {
-		uint32_t pos = long_bit_scan(push);
-		*move_list++ = (uint16_t)(pos | pos + back);
+		uint32_t dest = long_bit_scan(push);
+		*move_list++ = (uint16_t)(dest | (dest + back) << 6);
 		push &= push - 1;
 	}
 
+	while (double_push) {
+		uint32_t dest = long_bit_scan(double_push);
+		*move_list++ = (uint16_t)(dest | (dest + back + back) << 6 | 0x1000); //0x1000 flag for double push
+		double_push &= double_push - 1;
+	}
 
+	uint64_t pawn_left = shift_side(non_promoting & ~files[0], false, white) & opponent;
+	uint64_t pawn_right = shift_side(non_promoting & ~files[7], true, white) & opponent;
+	const uint32_t back_left = white ? 7 : -9;
+	const uint32_t back_right = white ? 9 : -7;
+
+	while (pawn_left) {
+		uint32_t dest = long_bit_scan(pawn_left);
+		*move_list++ = (uint16_t)(dest | (dest + back_left) << 6 | 0x4000); //0x4000 flag for capture
+		pawn_left &= pawn_left - 1;
+	}
+
+	while (pawn_right) {
+		uint32_t dest = long_bit_scan(pawn_right);
+		*move_list++ = (uint16_t)(dest | (dest + back_right) << 6 | 0x4000); //0x4000 flag for capture
+		pawn_right &= pawn_right - 1;
+	}
+	
+	if (pos->enPassant != 0) {
+		uint64_t epPos = 1ULL << (pos->enPassant);
+		//Reverse pawnAttack gives potential attackers of the ep square
+		uint64_t attackers = pawn_attack(epPos, !white) & non_promoting & (ranks[4] | ranks[3]);
+		while (attackers != 0) {
+			int pawn = long_bit_scan(attackers);
+			uint16_t move = (uint16_t)(pos -> enPassant | pawn << 6 | 0x5000); //0x5000 flag for ep capture
+			*move_list++ = move;
+			attackers &= attackers - 1;
+		}
+	}
+
+	if (promoting != 0) {
+		uint64_t promoPush = shift_up(promoting, white) & non_occupied;
+		uint64_t promoCapLeft = shift_side(promoting & ~files[0], false, white) & opponent;
+		uint64_t promoCapRight = shift_side(promoting & ~files[7], true, white) & opponent;
+		while (promoPush != 0) {
+			int dest = long_bit_scan(promoPush);
+			move_list = add_promotion(move_list, (uint16_t)(dest | (dest - back) << 6 | 0x8000));
+			promoPush &= promoPush - 1;
+		}
+		while (promoCapLeft != 0) {
+			int dest = long_bit_scan(promoCapLeft);
+			move_list = add_promotion(move_list, (uint16_t)(dest | (dest - back_left) << 6 | 0xC000));
+			promoCapLeft &= promoCapLeft - 1;
+		}
+		while (promoCapRight != 0) {
+			int dest = long_bit_scan(promoCapRight);
+			move_list = add_promotion(move_list, (uint16_t)(dest | (dest - back_right) << 6 | 0xC000));
+			promoCapRight &= promoCapRight - 1;
+		}
+	}
+	return move_list;
+}
+
+uint16_t* Move_Generator::add_promotion(uint16_t* move_list, uint16_t move) {
+	*move_list++ = move;
+	*move_list++ = (uint16_t)(move | 0x1000);
+	*move_list++ = (uint16_t)(move | 0x2000);
+	*move_list++ = (uint16_t)(move | 0x3000);
+	return move_list;
 }
 
 const uint64_t Move_Generator::shift_up(uint64_t pawns, bool white) {
 	return white ? pawns >> 8 : pawns << 8;
+}
+
+const uint64_t Move_Generator::shift_side(uint64_t pawns, bool right, bool white) {
+	return white ? (right ? pawns >> 7 : pawns >> 9) : (right ? pawns << 9 : pawns << 7);
 }
 
 

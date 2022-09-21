@@ -1,5 +1,6 @@
 #pragma once
 #include "sdl.h"
+#include "string"
 
 struct Position {
 	uint64_t pieceBoards[12];
@@ -16,3 +17,4 @@ struct Position {
 
 uint32_t bit_scan(uint32_t);
 uint32_t long_bit_scan(uint64_t);
+void print_bit_board(uint64_t b);

@@ -15,7 +15,8 @@ void Chess::main_loop() {
         events();
         // make a draw function
         window->draw_board();
-        window->draw_attack_sqaure(20, 20);
+        uint16_t move_list[40];
+        window->draw_attack_sqaure(engine->move_squares(move_list ,engine->get_legal_moves(move_list)));
         window->draw_pieces(engine->pos.pieceBoards);
         if (held_piece != 255) window->draw_piece_at_mouse(held_piece);
         window->update();
@@ -58,6 +59,11 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     held_piece = i;
                     held_piece_board = engine->pos.pieceBoards[i];
                     engine->pos.pieceBoards[i] -= mouse_pos;
+                    engine->pos.teamBoards[0] -= mouse_pos;
+                    if (i < 6)
+                        engine->pos.teamBoards[1] -= mouse_pos;
+                    else
+                        engine->pos.teamBoards[2] -= mouse_pos;
                     break;
                 }
         }
@@ -66,9 +72,18 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 for (int i = 0; i < 12; i++)
                     if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
                         engine->pos.pieceBoards[i] -= mouse_pos;
+                        if(i < 6)
+                            engine->pos.teamBoards[1] -= mouse_pos;
+                        else
+                            engine->pos.teamBoards[2] -= mouse_pos;
                         break;
                     }
                 engine->pos.pieceBoards[held_piece] |= mouse_pos;
+                engine->pos.teamBoards[0] |= mouse_pos;
+                if(held_piece < 6)
+                    engine->pos.teamBoards[1] |= mouse_pos;
+                else
+                    engine->pos.teamBoards[2] |= mouse_pos;
                 sound->move->play_sound();
             }
             else if(held_piece != 255) {

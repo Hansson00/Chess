@@ -17,7 +17,7 @@ public:
 	void update();
 	void mouse_grid_pos(int* x, int* y);
 	void draw_piece_at_mouse(int piece);
-	void draw_attack_sqaure(int x, int y);
+	void draw_attack_sqaure(uint64_t square);
 	void generate_attack_square();
 
 

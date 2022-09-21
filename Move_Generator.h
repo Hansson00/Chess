@@ -8,8 +8,10 @@ public:
 
 protected:
 	uint64_t pawn_attacks(uint64_t);
-	void generate_pawn_moves(uint16_t* move_list, Position* pos, bool white);
+	uint16_t* generate_pawn_moves(uint16_t* move_list, Position* pos, bool white);
+	uint16_t* add_promotion(uint16_t* move_list, uint16_t move);
 	const uint64_t shift_up(uint64_t pawns, bool white);
+	const uint64_t shift_side(uint64_t pawns, bool right, bool white);
 	const uint64_t pawn_attack(uint64_t pawns, bool white);
 	uint64_t* init_knight_attacks();
 	uint64_t* init_king_attacks();

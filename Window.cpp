@@ -78,10 +78,16 @@ void Window::draw_piece_at_mouse(int piece) {
 
 }
 
-void Window::draw_attack_sqaure(int x, int y) {
-
-	SDL_Rect rect = { 20, 20,  120 , 120 };
-	SDL_RenderCopy(renderer, attack_square, NULL, &rect);
+void Window::draw_attack_sqaure(uint64_t squares) {
+	while (squares) {
+		int square = long_bit_scan(squares);
+		int x = (square % 8) * piece_size + padding;
+		int y = (square / 8) * piece_size + padding;
+		SDL_Rect rect = { x, y,  120 , 120 };
+		SDL_RenderCopy(renderer, attack_square, NULL, &rect);
+		squares &= squares - 1;
+	}
+	
 
 }
 

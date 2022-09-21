@@ -1,17 +1,35 @@
 #include "Engine.h"
 
 Engine::Engine() {
-    fenInit("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit("rnbqkbnr/pppppppp/8/8/8/8/P6P/7K w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
 }
 
 Engine::~Engine() {
 
 }
 
+uint16_t* Engine::get_legal_moves(uint16_t* move_list) {
+    uint16_t* temp = move_list;
+    temp = generate_pawn_moves(temp, &pos, true);
+    *temp = 0;
+    return temp;
+}
+
+
+
+uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
+    uint64_t result = 0ULL;
+    while (*moves) {
+        result |= 1ULL << (*moves);
+        moves++;
+    }
+    return result;
+}
+
+
 void Engine::fenInit(std::string fen) {
     uint32_t i = 0;
-    for(int j = 0; j < 12; j++)
-        pos.pieceBoards[j] = 0;
+    memset(&pos, 0, sizeof(pos));
     for (char f : fen) {
         if (i < 64) {
             switch (f) {
@@ -45,6 +63,11 @@ void Engine::fenInit(std::string fen) {
         
         }
     }
+    pos.teamBoards[1] = pos.pieceBoards[0] | pos.pieceBoards[1] | pos.pieceBoards[2] |
+                        pos.pieceBoards[3] | pos.pieceBoards[4] | pos.pieceBoards[5];
+    pos.teamBoards[2] = pos.pieceBoards[6] | pos.pieceBoards[7] | pos.pieceBoards[8] |
+                        pos.pieceBoards[9] | pos.pieceBoards[10] | pos.pieceBoards[11];
+    pos.teamBoards[0] = pos.teamBoards[1] | pos.teamBoards[2];
 }
 
 

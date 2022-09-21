@@ -16,3 +16,14 @@ uint32_t long_bit_scan(uint64_t i) {
 	return x == 0 ? 32 + bit_scan((uint32_t)(i >> 32))
 		: bit_scan(x);
 }
+
+void print_bit_board(uint64_t b) {
+	std::string stb = "";
+	for (int i = 0; i < 64; i++) {
+		stb += (b & 1) == 1 ? 'x' : '0';
+		b >>= 1;
+	}
+	for (int i = 0; i < 8; i++) {
+	
+	}
+}

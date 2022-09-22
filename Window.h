@@ -28,6 +28,7 @@ private:
 	SDL_Texture** pieces;
 	SDL_Texture* attack_square;
 	SDL_Texture* board;
+	SDL_Texture* legal_circle;
 
 	int width;
 	int height;
@@ -36,4 +37,8 @@ private:
 
 	void generate_textures();
 	void generate_board_texture();
+	void generate_circle_texture();
+	
+	
+
 };

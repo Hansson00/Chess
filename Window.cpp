@@ -17,6 +17,7 @@ Window::Window(uint32_t window_width, uint32_t window_height) {
 	generate_textures();
 	generate_board_texture();
 	generate_attack_square();
+	generate_circle_texture();
 }
 
 Window::~Window() {
@@ -83,7 +84,7 @@ void Window::draw_attack_sqaure(uint64_t squares) {
 		int square = long_bit_scan(squares);
 		int x = (square % 8) * piece_size + padding;
 		int y = (square / 8) * piece_size + padding;
-		SDL_Rect rect = { x, y,  120 , 120 };
+		SDL_Rect rect = { x+1, y+1,  118 , 118 };
 		SDL_RenderCopy(renderer, attack_square, NULL, &rect);
 		squares &= squares - 1;
 	}
@@ -120,6 +121,35 @@ void Window::generate_board_texture() {
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);*/
 }
+
+void Window::generate_circle_texture() {
+
+	const int w = 1000;
+	const int h = 1000;
+
+	SDL_Surface* surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
+
+	//SDL_Rect rect = { 0,0,1,1 };
+
+	SDL_LockSurface(surface);
+	uint8_t* pixelArray = (uint8_t*)surface->pixels;
+
+
+	for (int i = -w / 2; i < w / 2; i++) {
+		for (int j = -h / 2; j < h / 2; j++) {
+			if (i * i + j * j <= w * h / 16) {
+				pixelArray[(j + w / 2) * surface->pitch + (i + w / 2) * surface->format->BytesPerPixel + 0] = 61;
+				pixelArray[(j + w / 2) * surface->pitch + (i + w / 2) * surface->format->BytesPerPixel + 1] = 61;
+				pixelArray[(j + w / 2) * surface->pitch + (i + w / 2) * surface->format->BytesPerPixel + 2] = 61;
+			}
+		}
+	}
+
+	SDL_UnlockSurface(surface);
+	SDL_SetColorKey(surface, SDL_TRUE, 0x0);
+	this->legal_circle = SDL_CreateTextureFromSurface(renderer, surface);
+}
+
 
 void Window::generate_textures() {
 	

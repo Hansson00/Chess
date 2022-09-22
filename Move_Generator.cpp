@@ -1,8 +1,8 @@
 #include "Move_Generator.h"
 
 Move_Generator::Move_Generator(){
-	king_attacks = init_king_attacks();
-	knight_attacks = init_knight_attacks();
+	init_king_attacks();
+	init_knight_attacks();
 }
 
 Move_Generator::~Move_Generator() {
@@ -54,7 +54,7 @@ uint16_t* Move_Generator::generate_pawn_moves(uint16_t* move_list, Position* pos
 	if (pos->enPassant != 0) {
 		uint64_t epPos = 1ULL << (pos->enPassant);
 		//Reverse pawnAttack gives potential attackers of the ep square
-		uint64_t attackers = pawn_attack(epPos, !white) & non_promoting & (ranks[4] | ranks[3]);
+		uint64_t attackers = pawn_attack(epPos, !white) & non_promoting & (ranks[4] | ranks[3]); //ranks is redundant I think
 		while (attackers != 0) {
 			int pawn = long_bit_scan(attackers);
 			uint16_t move = (uint16_t)(pos -> enPassant | pawn << 6 | 0x5000); //0x5000 flag for ep capture
@@ -94,6 +94,41 @@ uint16_t* Move_Generator::add_promotion(uint16_t* move_list, uint16_t move) {
 	return move_list;
 }
 
+uint16_t* Move_Generator::generate_knight_moves(uint16_t* move_list, Position* pos, bool white) {
+	const uint64_t team = white ? pos->teamBoards[1] : pos->teamBoards[2];
+	const uint64_t board = pos->teamBoards[0];
+	uint64_t knights = white ? pos->pieceBoards[2] : pos->pieceBoards[8];
+	while (knights) {
+		uint32_t knight = long_bit_scan(knights);
+		uint64_t moves = knight_attacks[knight] & ~team;
+		while (moves) {
+			uint32_t dest = long_bit_scan(moves);
+			const uint16_t cap = ((board & (1ULL << dest)) == 0) ? 0 : 0x4000; //intersection with board gives captures
+			*move_list++ = (uint16_t)(dest | knight << 6 | cap);
+			moves &= moves - 1;
+		}
+		knights &= knights - 1;
+	}
+	return move_list;
+}
+
+
+uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos, bool white) {
+	const uint64_t team = white ? pos->teamBoards[1] : pos->teamBoards[2];
+	const uint64_t board = pos->teamBoards[0];
+	const uint64_t not_attacked = white ? ~(pos->blackAttack) : ~(pos->whiteAttack);
+	const uint64_t king = white ? pos->pieceBoards[0] : pos->pieceBoards[6];
+	uint32_t k_pos = long_bit_scan(king);
+	uint64_t moves = king_attacks[k_pos] & not_attacked & ~team;
+	while (moves) {
+		uint32_t dest = long_bit_scan(moves);
+		const uint16_t cap = ((board & (1ULL << dest)) == 0) ? 0 : 0x4000; //intersection with board gives captures
+		*move_list++ = (uint16_t)(dest | k_pos << 6 | cap);
+		moves &= moves - 1;
+	}
+	return move_list;
+}
+
 const uint64_t Move_Generator::shift_up(uint64_t pawns, bool white) {
 	return white ? pawns >> 8 : pawns << 8;
 }
@@ -114,8 +149,7 @@ const uint64_t Move_Generator::pawn_attack(uint64_t pawns, bool white) {
 //////////////////////////////////////////////
 //Init attack arrays
 //////////////////////////////////////////////
-uint64_t* Move_Generator::init_knight_attacks() {
-	uint64_t knight_attack[64];
+void Move_Generator::init_knight_attacks() {
 	for (int i = 0; i < 64; i++) {
 		uint64_t knight = 1LL << i;
 		uint64_t attack = (knight >> 10) & ~(files[6] | files[7] | ranks[7]); //Two files to left and up
@@ -126,15 +160,13 @@ uint64_t* Move_Generator::init_knight_attacks() {
 		attack |= (knight << 17) & ~(files[0] | ranks[0] | ranks[1]); //One file to right and down
 		attack |= (knight >> 6) & ~(files[0] | files[1] | ranks[7]); //Two files to right and up
 		attack |= (knight << 10) & ~(files[0] | files[1] | ranks[0]); //Two files to right and down
-		knight_attack[i] = attack;
+		knight_attacks[i] = attack;
 	}
-	return knight_attack;
 }
 
-uint64_t* Move_Generator::init_king_attacks() {
-	uint64_t king_attacks[64];
+void Move_Generator::init_king_attacks() {
 	for (int i = 0; i < 64; i++) {
-		uint64_t king = 1LL << i;
+		uint64_t king = 1ULL << i;
 		uint64_t attack = (king >> 9) & ~(files[7] | ranks[7]); //Diagonal left up
 		attack |= (king >> 1) & ~(files[7]); //One step left
 		attack |= (king << 7) & ~(files[7] | ranks[0]); //Diagonal left down
@@ -145,6 +177,4 @@ uint64_t* Move_Generator::init_king_attacks() {
 		attack |= (king << 9) & ~(files[0] | ranks[0]); //Diagonal right down
 		king_attacks[i] = attack;
 	}
-	return king_attacks;
-
 }

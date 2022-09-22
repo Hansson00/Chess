@@ -10,7 +10,7 @@ Engine::~Engine() {
 
 uint16_t* Engine::get_legal_moves(uint16_t* move_list) {
     uint16_t* temp = move_list;
-    temp = generate_pawn_moves(temp, &pos, true);
+    temp = generate_king_moves(temp, &pos, false);
     *temp = 0;
     return temp;
 }
@@ -63,6 +63,8 @@ void Engine::fenInit(std::string fen) {
         
         }
     }
+    pos.enPassant = 40;
+    pos.whiteAttack = 0;
     pos.teamBoards[1] = pos.pieceBoards[0] | pos.pieceBoards[1] | pos.pieceBoards[2] |
                         pos.pieceBoards[3] | pos.pieceBoards[4] | pos.pieceBoards[5];
     pos.teamBoards[2] = pos.pieceBoards[6] | pos.pieceBoards[7] | pos.pieceBoards[8] |

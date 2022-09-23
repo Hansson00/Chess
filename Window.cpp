@@ -76,7 +76,6 @@ void Window::draw_piece_at_mouse(int piece) {
 	rect.x = x - piece_size / 2;
 	rect.y = y - piece_size / 2;
 	SDL_RenderCopy(renderer, pieces[piece], NULL, &rect);
-
 }
 
 void Window::draw_attack_sqaure(uint64_t squares) {

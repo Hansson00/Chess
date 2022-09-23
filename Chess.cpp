@@ -4,7 +4,7 @@
 Chess::Chess() {
     SDL_Init(SDL_INIT_EVERYTHING);
     window = new Window(1000, 1000);
-    sound = new Sound_Manager();
+    sound_manager = new Sound_Manager();
     engine = new Engine();
 
 }
@@ -13,13 +13,10 @@ void Chess::main_loop() {
 
     while (running) {
         events();
-        // make a draw function
-        window->draw_board();
-        uint16_t move_list[40];
-        window->draw_attack_sqaure(engine->move_squares(move_list ,engine->get_legal_moves(move_list)));
-        window->draw_pieces(engine->pos.pieceBoards);
-        if (held_piece != 255) window->draw_piece_at_mouse(held_piece);
-        window->update();
+        draw();
+
+
+        
     }
 }
 
@@ -42,6 +39,16 @@ void Chess::events() {
         }
     }
 }
+
+void Chess::draw() {
+    window->draw_board();
+    uint16_t move_list[40];
+    window->draw_attack_sqaure(engine->move_squares(move_list, engine->get_legal_moves(move_list)));
+    window->draw_pieces(engine->pos.pieceBoards);
+    if (held_piece != 255) window->draw_piece_at_mouse(held_piece);
+    window->update();
+}
+
 
 void Chess::mouse_event(uint8_t button, bool mouse_down) {
     int x, y;
@@ -84,7 +91,8 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     engine->pos.teamBoards[1] |= mouse_pos;
                 else
                     engine->pos.teamBoards[2] |= mouse_pos;
-                sound->play_sound(sound->move);
+
+                sound_manager->play_sound(sound_manager->move);
             }
             else if(held_piece != 255) {
                 engine->pos.pieceBoards[held_piece] = held_piece_board;
@@ -93,3 +101,27 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         }
     }
 }
+
+void Chess::chagne_bitboards(uint32_t p, uint64_t add, uint64_t remove) {
+
+    if (add > 0) {
+        engine->pos.pieceBoards[p] |= add;
+        engine->pos.teamBoards[0] |= add;
+        if (p < 6)
+            engine->pos.teamBoards[1] |= add;
+        else
+            engine->pos.teamBoards[2] |= add;
+    }
+    if (remove > 0) {
+        engine->pos.pieceBoards[p] &= ~remove;
+        engine->pos.teamBoards[0] &= ~remove;
+        if (p < 6)
+            engine->pos.teamBoards[1] &= ~remove;
+        else
+            engine->pos.teamBoards[2] &= ~remove;
+    }
+    
+
+}
+
+

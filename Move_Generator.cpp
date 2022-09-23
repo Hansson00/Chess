@@ -139,7 +139,7 @@ const uint64_t Move_Generator::shift_side(uint64_t pawns, bool right, bool white
 
 
 
-const uint64_t Move_Generator::pawn_attack(uint64_t pawns, bool white) {
+const uint64_t Move_Generator::pawn_attacks(uint64_t pawns, bool white) {
 	return white ? ((pawns >> 9) & ~files[7] | (pawns >> 7) & ~files[0]) : 
 		((pawns << 9) & ~files[7] | (pawns << 7) & ~files[0]);
 }

@@ -127,7 +127,27 @@ uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos
 	const uint64_t board = pos->teamBoards[0];
 	const uint64_t not_attacked = white ? ~(pos->blackAttack) : ~(pos->whiteAttack);
 	const uint64_t king = white ? pos->pieceBoards[0] : pos->pieceBoards[6];
+	const uint8_t castle = white ? pos->castlingRights : (pos->castlingRights >> 2);
 	uint32_t k_pos = long_bit_scan(king);
+
+	//Castling
+	if (castle & 2) {
+		const uint64_t part = 1ULL << (k_pos - 1) | 1ULL << (k_pos - 2);
+		const uint64_t no_attack = part | 1ULL << k_pos;
+		const uint64_t no_piece = part | 1ULL << (k_pos - 3);
+		const bool is_ok = (board & no_piece) == 0 && ((no_attack)&not_attacked) == no_attack;
+		if (is_ok)
+			*move_list++ = (uint16_t)(k_pos - 2 | k_pos << 6 | 0x3000); //queen side castle
+	}
+	if (castle & 1) {
+		const uint64_t no_piece = 1ULL << (k_pos - 1) | 1ULL << (k_pos - 2);
+		const uint64_t no_attack = no_piece | 1ULL << k_pos;
+		const bool is_ok = (board & no_piece) == 0 && (no_attack & not_attacked) == no_attack;
+		if (is_ok)
+			*move_list++ = (uint16_t)(k_pos + 2 | k_pos << 6 | 0x2000); //king side castle
+	}
+
+	//Regular moves
 	uint64_t moves = king_attacks[k_pos] & not_attacked & ~team;
 	while (moves) {
 		uint32_t dest = long_bit_scan(moves);

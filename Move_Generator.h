@@ -1,6 +1,7 @@
 #pragma once
 #include "sdl.h"
 #include "Chess_utility.h"
+
 class Move_Generator {
 public:
 	Move_Generator();

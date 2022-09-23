@@ -49,7 +49,6 @@ void Chess::draw() {
     window->update();
 }
 
-
 void Chess::mouse_event(uint8_t button, bool mouse_down) {
     int x, y;
     SDL_GetMouseState(&x, &y);
@@ -65,12 +64,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
                     held_piece = i;
                     held_piece_board = engine->pos.pieceBoards[i];
-                    engine->pos.pieceBoards[i] -= mouse_pos;
-                    engine->pos.teamBoards[0] -= mouse_pos;
-                    if (i < 6)
-                        engine->pos.teamBoards[1] -= mouse_pos;
-                    else
-                        engine->pos.teamBoards[2] -= mouse_pos;
+                    chagne_bitboards(i, 0, mouse_pos);
                     break;
                 }
         }
@@ -78,20 +72,10 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
             if (x < 8 && y < 8 && held_piece != 255) { // Check if this legal is as well
                 for (int i = 0; i < 12; i++)
                     if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
-                        engine->pos.pieceBoards[i] -= mouse_pos;
-                        if(i < 6)
-                            engine->pos.teamBoards[1] -= mouse_pos;
-                        else
-                            engine->pos.teamBoards[2] -= mouse_pos;
+                        chagne_bitboards(i, 0, mouse_pos);
                         break;
                     }
-                engine->pos.pieceBoards[held_piece] |= mouse_pos;
-                engine->pos.teamBoards[0] |= mouse_pos;
-                if(held_piece < 6)
-                    engine->pos.teamBoards[1] |= mouse_pos;
-                else
-                    engine->pos.teamBoards[2] |= mouse_pos;
-
+                chagne_bitboards(held_piece, mouse_pos, 0);
                 sound_manager->play_sound(sound_manager->move);
             }
             else if(held_piece != 255) {

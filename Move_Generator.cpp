@@ -36,8 +36,8 @@ uint16_t* Move_Generator::generate_pawn_moves(uint16_t* move_list, Position* pos
 
 	uint64_t pawn_left = shift_side(non_promoting & ~files[0], false, white) & opponent;
 	uint64_t pawn_right = shift_side(non_promoting & ~files[7], true, white) & opponent;
-	const uint32_t back_left = white ? 7 : -9;
-	const uint32_t back_right = white ? 9 : -7;
+	const uint32_t back_left = white ? 9 : -7;
+	const uint32_t back_right = white ? 7 : -9;
 
 	while (pawn_left) {
 		uint32_t dest = long_bit_scan(pawn_left);
@@ -120,7 +120,8 @@ uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos
 	const uint64_t king = white ? pos->pieceBoards[0] : pos->pieceBoards[6];
 	const uint8_t castle = white ? pos->castlingRights : (pos->castlingRights >> 2);
 	uint32_t k_pos = long_bit_scan(king);
-
+	if (k_pos == 64)
+		return move_list;
 	//Castling
 	if (castle & 2) {
 		const uint64_t part = 1ULL << (k_pos - 1) | 1ULL << (k_pos - 2);
@@ -139,6 +140,7 @@ uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos
 	}
 
 	//Regular moves
+	
 	uint64_t moves = king_attacks[k_pos] & not_attacked & ~team;
 	while (moves) {
 		uint32_t dest = long_bit_scan(moves);

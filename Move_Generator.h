@@ -8,6 +8,7 @@ public:
 	~Move_Generator();
 
 protected:
+	void (*foo)(int);
 	uint16_t* generate_pawn_moves(uint16_t* move_list, Position* pos, bool white);
 	uint16_t* generate_knight_moves(uint16_t* move_list, Position* pos, bool white);
 	uint16_t* generate_king_moves(uint16_t* move_list, Position* pos, bool white);

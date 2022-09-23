@@ -16,7 +16,7 @@ Window::Window(uint32_t window_width, uint32_t window_height) {
 	
 	generate_textures();
 	generate_board_texture();
-	generate_attack_square();
+	generate_attack_texture();
 	generate_circle_texture();
 }
 
@@ -46,15 +46,6 @@ void Window::draw_pieces(uint64_t* bit_board) {
 	}
 }
 
-
-void Window::generate_attack_square() {
-	SDL_Surface* surface = SDL_CreateRGBSurface(0, 120, 120, 32, 0, 0, 0, 0);
-	SDL_Rect rect = { 0, 0, 120, 120};
-	SDL_FillRect(surface, &rect, 0xff0000);
-	this->attack_square = SDL_CreateTextureFromSurface(renderer, surface);
-	SDL_FreeSurface(surface);
-}
-
 void Window::draw_board() {
 	SDL_Rect rect = { 0,0,  width , height};
 	SDL_RenderCopy(renderer, board, NULL, &rect);
@@ -78,17 +69,25 @@ void Window::draw_piece_at_mouse(int piece) {
 	SDL_RenderCopy(renderer, pieces[piece], NULL, &rect);
 }
 
-void Window::draw_attack_sqaure(uint64_t squares) {
+void Window::draw_texture_at_square(uint64_t squares, SDL_Texture* texture) {
 	while (squares) {
 		int square = long_bit_scan(squares);
 		int x = (square % 8) * piece_size + padding;
 		int y = (square / 8) * piece_size + padding;
 		SDL_Rect rect = { x+1, y+1,  118 , 118 };
-		SDL_RenderCopy(renderer, attack_square, NULL, &rect);
+		SDL_RenderCopy(renderer, texture, NULL, &rect);
 		squares &= squares - 1;
 	}
 	
 
+}
+
+void Window::generate_attack_texture() {
+	SDL_Surface* surface = SDL_CreateRGBSurface(0, 120, 120, 32, 0, 0, 0, 0);
+	SDL_Rect rect = { 0, 0, 120, 120 };
+	SDL_FillRect(surface, &rect, 0xff0000);
+	this->attack_square = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
 }
 
 void Window::generate_board_texture() {
@@ -148,7 +147,6 @@ void Window::generate_circle_texture() {
 	SDL_SetColorKey(surface, SDL_TRUE, 0x0);
 	this->legal_circle = SDL_CreateTextureFromSurface(renderer, surface);
 }
-
 
 void Window::generate_textures() {
 	

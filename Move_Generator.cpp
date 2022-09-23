@@ -3,12 +3,21 @@
 Move_Generator::Move_Generator(){
 	init_king_attacks();
 	init_knight_attacks();
+
+	//arr[0]= &Move_Generator::generate_knight_moves;
+
+	//(uint16_t* (Move_Generator:: * generate_knight_moves)(uint16_t *, Position *, bool))
+	
+	//uint16_t* (Move_Generator:: * generate_moves)(uint16_t * move_list, Position * pos, bool white)
 }
 
 Move_Generator::~Move_Generator() {
 
 }
 
+/*uint16_t* Move_Generator::generate_held_piece_moves(uint16_t* move_list, uint16_t p, Position* pos, bool white) {
+	return (this->*arr[p])(move_list, pos, true);
+}*/
 
 uint16_t* Move_Generator::generate_pawn_moves(uint16_t* move_list, Position* pos, bool white) {
 	const uint64_t pawns = white ? pos -> pieceBoards[1] : pos->pieceBoards[7];

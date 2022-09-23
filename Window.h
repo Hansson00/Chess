@@ -17,18 +17,18 @@ public:
 	void update();
 	void mouse_grid_pos(int* x, int* y);
 	void draw_piece_at_mouse(int piece);
-	void draw_attack_sqaure(uint64_t square);
-	void generate_attack_square();
+	void draw_texture_at_square(uint64_t square, SDL_Texture* texture);
 
+	SDL_Texture* legal_circle;
+	SDL_Texture* attack_square;
 
 private:
 	
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 	SDL_Texture** pieces;
-	SDL_Texture* attack_square;
 	SDL_Texture* board;
-	SDL_Texture* legal_circle;
+	
 
 	int width;
 	int height;
@@ -38,6 +38,7 @@ private:
 	void generate_textures();
 	void generate_board_texture();
 	void generate_circle_texture();
+	void generate_attack_texture();
 	
 	
 

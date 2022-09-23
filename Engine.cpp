@@ -1,7 +1,7 @@
 #include "Engine.h"
 
 Engine::Engine() {
-    fenInit("rnbqkbnr/pppppppp/8/8/8/8/P6P/7K w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/7K w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
 }
 
 Engine::~Engine() {
@@ -10,9 +10,24 @@ Engine::~Engine() {
 
 uint16_t* Engine::get_legal_moves(uint16_t* move_list) {
     uint16_t* temp = move_list;
-    temp = generate_king_moves(temp, &pos, false);
+    temp = generate_pawn_moves(temp, &pos, true);
     *temp = 0;
     return temp;
+}
+
+uint64_t Engine::generate_held_piece_moves(uint16_t* move_list, uint16_t p, Position* pos, uint64_t mask) {
+
+    uint16_t piece_pos = long_bit_scan(mask);
+
+    uint16_t* end = (this->*arr[p%3])(move_list, pos, p < 6);
+    *end = 0;
+    uint64_t result = 0;
+    while (*move_list) {
+        if (((*move_list >> 6) & 0x3F )== piece_pos)
+            result |= 1ULL << (*move_list & 0x3F);
+        move_list++;
+    }
+    return result;
 }
 
 

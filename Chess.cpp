@@ -43,9 +43,13 @@ void Chess::events() {
 void Chess::draw() {
     window->draw_board();
     uint16_t move_list[40];
-    window->draw_attack_sqaure(engine->move_squares(move_list, engine->get_legal_moves(move_list)));
+    window->draw_texture_at_square(engine->move_squares(move_list, engine->get_legal_moves(move_list)), window->attack_square);
     window->draw_pieces(engine->pos.pieceBoards);
-    if (held_piece != 255) window->draw_piece_at_mouse(held_piece);
+    if (held_piece != 255) {
+        window->draw_piece_at_mouse(held_piece);
+        uint16_t move_list1[40];
+        window->draw_texture_at_square(engine->generate_held_piece_moves(move_list1, held_piece, &(engine->pos),held_piece_board), window->legal_circle);
+    }
     window->update();
 }
 
@@ -63,13 +67,14 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
             for (int i = 0; i < 12; i++)
                 if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
                     held_piece = i;
-                    held_piece_board = engine->pos.pieceBoards[i];
-                    chagne_bitboards(i, 0, mouse_pos);
+                    held_piece_board = mouse_pos;
+                    //chagne_bitboards(i, 0, mouse_pos);
                     break;
                 }
         }
         else { // Place piece
             if (x < 8 && y < 8 && held_piece != 255) { // Check if this legal is as well
+                chagne_bitboards(held_piece, 0, held_piece_board);
                 for (int i = 0; i < 12; i++)
                     if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
                         chagne_bitboards(i, 0, mouse_pos);
@@ -104,8 +109,6 @@ void Chess::chagne_bitboards(uint32_t p, uint64_t add, uint64_t remove) {
         else
             engine->pos.teamBoards[2] &= ~remove;
     }
-    
-
 }
 
 

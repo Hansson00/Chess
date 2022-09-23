@@ -27,6 +27,8 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
 }
 
 
+
+
 void Engine::fenInit(std::string fen) {
     uint32_t i = 0;
     memset(&pos, 0, sizeof(pos));

@@ -45,18 +45,18 @@ uint16_t* Move_Generator::generate_pawn_moves(uint16_t* move_list, Position* pos
 
 	uint64_t pawn_left = shift_side(non_promoting & ~files[0], false, white) & opponent;
 	uint64_t pawn_right = shift_side(non_promoting & ~files[7], true, white) & opponent;
-	const uint32_t back_left = white ? 9 : -7;
-	const uint32_t back_right = white ? 7 : -9;
+	const uint32_t back_left = white ? 7 : -9;
+	const uint32_t back_right = white ? 9 : -7;
 
 	while (pawn_left) {
 		uint32_t dest = long_bit_scan(pawn_left);
-		*move_list++ = (uint16_t)(dest | (dest + back_left) << 6 | 0x4000); //0x4000 flag for capture
+		*move_list++ = (uint16_t)(dest | (dest + back_right) << 6 | 0x4000); //0x4000 flag for capture
 		pawn_left &= pawn_left - 1;
 	}
 
 	while (pawn_right) {
 		uint32_t dest = long_bit_scan(pawn_right);
-		*move_list++ = (uint16_t)(dest | (dest + back_right) << 6 | 0x4000); //0x4000 flag for capture
+		*move_list++ = (uint16_t)(dest | (dest + back_left) << 6 | 0x4000); //0x4000 flag for capture
 		pawn_right &= pawn_right - 1;
 	}
 	

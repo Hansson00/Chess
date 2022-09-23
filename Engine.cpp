@@ -1,7 +1,7 @@
 #include "Engine.h"
 
 Engine::Engine() {
-    fenInit("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/7K w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/6NK w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
 }
 
 Engine::~Engine() {

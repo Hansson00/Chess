@@ -17,7 +17,7 @@ public:
 
 private:
 	uint16_t* (Move_Generator::* arr[6])(uint16_t*, Position*, bool) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves,
-	&Move_Generator::generate_sliding_moves, &Move_Generator::generate_sliding_moves, &Move_Generator::generate_sliding_moves};
+	&Move_Generator::generate_bishop_moves, &Move_Generator::generate_rook_moves, &Move_Generator::generate_queen_moves};
 	void fenInit(std::string);
 	
 	

@@ -19,7 +19,7 @@ uint64_t Engine::generate_held_piece_moves(uint16_t* move_list, uint16_t p, Posi
 
     uint16_t piece_pos = long_bit_scan(mask);
 
-    uint16_t* end = (this->*arr[p%3])(move_list, pos, p < 6);
+    uint16_t* end = (this->*arr[p % 6])(move_list, pos, p < 6);
     *end = 0;
     uint64_t result = 0;
     while (*move_list) {

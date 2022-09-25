@@ -3,6 +3,7 @@
 Move_Generator::Move_Generator(){
 	init_king_attacks();
 	init_knight_attacks();
+	init_row_attacks();
 
 	//arr[0]= &Move_Generator::generate_knight_moves;
 
@@ -131,7 +132,7 @@ uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos
 	uint32_t k_pos = long_bit_scan(king);
 	if (k_pos == 64)
 		return move_list;
-	//Castling
+	//Castling moves
 	if (castle & 2) {
 		const uint64_t part = 1ULL << (k_pos - 1) | 1ULL << (k_pos - 2);
 		const uint64_t no_attack = part | 1ULL << k_pos;
@@ -149,7 +150,6 @@ uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos
 	}
 
 	//Regular moves
-	
 	uint64_t moves = king_attacks[k_pos] & not_attacked & ~team;
 	while (moves) {
 		uint32_t dest = long_bit_scan(moves);
@@ -159,6 +159,65 @@ uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos
 	}
 	return move_list;
 }
+
+
+//Currently returns rook moves
+uint16_t* Move_Generator::generate_sliding_moves(uint16_t* move_list, Position* pos, bool white) {
+	const uint64_t team = white ? pos->teamBoards[1] : pos->teamBoards[2];
+	const uint64_t board = pos->teamBoards[0];
+	uint64_t sliders = white ? pos->pieceBoards[5] : pos->pieceBoards[10];
+	while (sliders) {
+		uint32_t slider = long_bit_scan(sliders);
+		uint64_t moves = rook_attacks(board, slider) & ~team;
+		while (moves) {
+			uint32_t dest = long_bit_scan(moves);
+			const uint16_t cap = ((board & (1ULL << dest)) == 0) ? 0 : 0x4000; //intersection with board gives captures
+			*move_list++ = (uint16_t)(dest | slider << 6 | cap);
+			moves &= moves - 1;
+		}
+		sliders &= sliders - 1;
+	}
+	return move_list;
+}
+
+
+
+uint64_t Move_Generator::rook_attacks(uint64_t board, int rook_pos) {
+	return rank_attacks(board, rook_pos) | file_attacks(board, rook_pos);
+}
+
+
+uint64_t Move_Generator::file_attacks(uint64_t board, int rook_pos) {
+	int file = rook_pos % 8;
+	int occupancy = (int)((file_to_rank(board, file) >> 1) & 0b111111);
+	uint64_t fileAttack = rook_attack_table[rook_pos / 8][occupancy];
+	fileAttack = rank_to_file(fileAttack, 0);
+	fileAttack = fileAttack >> (7 - file);
+	print_bit_board(fileAttack);
+	return fileAttack;
+}
+
+uint64_t Move_Generator::rank_attacks(uint64_t board, int rook_pos) {
+	int column = rook_pos % 8;
+	int shift = (rook_pos / 8) * 8;
+	uint64_t occupancy = (board >> (shift + 1)) & 0x3F;
+	return rook_attack_table[column][occupancy] << shift;
+}
+
+uint64_t Move_Generator::rank_to_file(uint64_t bitBoard, int rank) {
+	bitBoard = (bitBoard >> rank * 8) & ranks[0];
+	bitBoard = (((bitBoard * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101010101ULL) >> 56; //Mirror rank0
+	bitBoard = bitBoard * main_diagonals[7]; //Flip to H-file
+	return bitBoard & files[7]; //Remove junk
+}
+
+uint64_t Move_Generator::file_to_rank(uint64_t bitBoard, int file) {
+	bitBoard = (bitBoard << (7 - file)) & files[7]; //Move specified file to H - file and mask junk
+	bitBoard = bitBoard * shifted_anti_diagonal; //Multiply with shifted anti diagonal
+	return bitBoard >> 56; //Move answer to rank0
+}
+
+
 
 const uint64_t Move_Generator::shift_up(uint64_t pawns, bool white) {
 	return white ? pawns >> 8 : pawns << 8;
@@ -208,4 +267,39 @@ void Move_Generator::init_king_attacks() {
 		attack |= (king << 9) & ~(files[0] | ranks[0]); //Diagonal right down
 		king_attacks[i] = attack;
 	}
+}
+
+
+void Move_Generator::init_row_attacks() {
+	//All possible positions on a rank
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 64; j++) {
+			//Outer bits don't matter, therefore boardmask i.e occupancy only need 2^6 bits
+			rook_attack_table[i][j] = calc_row_attack(j << 1, i);
+		}
+	}
+}
+
+
+//Used to initiate row attack matrix, is only based on first row since result can be shifted to desired row
+uint64_t Move_Generator::calc_row_attack(uint64_t row_occupancy, int pos) {
+	uint64_t attack = 0ULL;
+	uint64_t sq;
+	int iter = pos - 1;
+	while (iter >= 0) {
+		sq = 1ULL << iter;
+		attack |= sq;
+		if ((sq & row_occupancy) == sq)
+			break;
+		iter--;
+	}
+	iter = pos + 1;
+	while (iter <= 7) {
+		sq = 1ULL << iter;
+		attack |= sq;
+		if ((sq & row_occupancy) == sq)
+			break;
+		iter++;
+	}
+	return attack;
 }

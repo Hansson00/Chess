@@ -1,4 +1,7 @@
 #include "Chess_utility.h"
+#include <string>
+#include <iostream>
+using namespace std;
 
 uint32_t bit_scan(uint32_t i) {
 	i = ~i & (i - 1);
@@ -17,13 +20,17 @@ uint32_t long_bit_scan(uint64_t i) {
 		: bit_scan(x);
 }
 
+
 void print_bit_board(uint64_t b) {
 	std::string stb = "";
 	for (int i = 0; i < 64; i++) {
 		stb += (b & 1) == 1 ? 'x' : '0';
+		if (i % 8 == 7){
+			cout << stb;
+			cout << "\n";
+			stb = "";
+		}
 		b >>= 1;
 	}
-	for (int i = 0; i < 8; i++) {
-	
-	}
+	cout << "\n\n";
 }

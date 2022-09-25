@@ -16,7 +16,8 @@ public:
 	uint64_t generate_held_piece_moves(uint16_t* move_list, uint16_t p, Position* pos, uint64_t mask);
 
 private:
-	uint16_t* (Move_Generator::* arr[6])(uint16_t*, Position*, bool) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves };
+	uint16_t* (Move_Generator::* arr[6])(uint16_t*, Position*, bool) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves,
+	&Move_Generator::generate_sliding_moves, &Move_Generator::generate_sliding_moves, &Move_Generator::generate_sliding_moves};
 	void fenInit(std::string);
 	
 	

@@ -1,7 +1,7 @@
 #include "Engine.h"
 
 Engine::Engine() {
-    fenInit("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/6NK w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
 }
 
 Engine::~Engine() {
@@ -82,6 +82,7 @@ void Engine::fenInit(std::string fen) {
     }
     pos.enPassant = 40;
     pos.whiteAttack = 0;
+    pos.blackAttack = 0;
     pos.teamBoards[1] = pos.pieceBoards[0] | pos.pieceBoards[1] | pos.pieceBoards[2] |
                         pos.pieceBoards[3] | pos.pieceBoards[4] | pos.pieceBoards[5];
     pos.teamBoards[2] = pos.pieceBoards[6] | pos.pieceBoards[7] | pos.pieceBoards[8] |

@@ -21,7 +21,10 @@ public:
 	uint16_t* generate_pawn_moves(uint16_t* move_list, Position* pos, bool white);
 	uint16_t* generate_knight_moves(uint16_t* move_list, Position* pos, bool white);
 	uint16_t* generate_king_moves(uint16_t* move_list, Position* pos, bool white);
-	uint16_t* generate_sliding_moves(uint16_t* move_list, Position* pos, bool white);
+	uint16_t* generate_bishop_moves(uint16_t* move_list, Position* pos, bool white);
+	uint16_t* generate_queen_moves(uint16_t* move_list, Position* pos, bool white);
+	uint16_t* generate_rook_moves(uint16_t* move_list, Position* pos, bool white);
+	uint16_t* generate_sliding_moves(uint16_t* move_list, uint64_t board, uint64_t moves, uint32_t piece);
 protected:
 	uint16_t* add_promotion(uint16_t* move_list, uint16_t move);
 	const uint64_t shift_up(uint64_t pawns, bool white);

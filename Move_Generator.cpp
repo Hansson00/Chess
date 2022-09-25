@@ -104,6 +104,7 @@ uint16_t* Move_Generator::add_promotion(uint16_t* move_list, uint16_t move) {
 	return move_list;
 }
 
+
 uint16_t* Move_Generator::generate_knight_moves(uint16_t* move_list, Position* pos, bool white) {
 	const uint64_t team = white ? pos->teamBoards[1] : pos->teamBoards[2];
 	const uint64_t board = pos->teamBoards[0];
@@ -135,15 +136,15 @@ uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos
 	//Castling moves
 	if (castle & 2) {
 		const uint64_t part = 1ULL << (k_pos - 1) | 1ULL << (k_pos - 2);
-		const uint64_t no_attack = part | 1ULL << k_pos;
-		const uint64_t no_piece = part | 1ULL << (k_pos - 3);
-		const bool is_ok = (board & no_piece) == 0 && ((no_attack)&not_attacked) == no_attack;
+		const uint64_t no_attack = part | (1ULL << k_pos);
+		const uint64_t no_piece = part | (1ULL << (k_pos - 3));
+		const bool is_ok = (board & no_piece) == 0 && (no_attack & not_attacked) == no_attack;
 		if (is_ok)
 			*move_list++ = (uint16_t)(k_pos - 2 | k_pos << 6 | 0x3000); //queen side castle
 	}
 	if (castle & 1) {
-		const uint64_t no_piece = 1ULL << (k_pos - 1) | 1ULL << (k_pos - 2);
-		const uint64_t no_attack = no_piece | 1ULL << k_pos;
+		const uint64_t no_piece = (1ULL << (k_pos + 1)) | (1ULL << (k_pos + 2));
+		const uint64_t no_attack = no_piece | (1ULL << k_pos);
 		const bool is_ok = (board & no_piece) == 0 && (no_attack & not_attacked) == no_attack;
 		if (is_ok)
 			*move_list++ = (uint16_t)(k_pos + 2 | k_pos << 6 | 0x2000); //king side castle
@@ -160,22 +161,51 @@ uint16_t* Move_Generator::generate_king_moves(uint16_t* move_list, Position* pos
 	return move_list;
 }
 
+uint16_t* Move_Generator::generate_rook_moves(uint16_t* move_list, Position* pos, bool white) {
+	uint64_t pieces = white ? pos->pieceBoards[4] : pos->pieceBoards[10];
+	const uint64_t board = pos->teamBoards[0];
+	const uint64_t non_team = white ? ~(pos->teamBoards[1]) : ~(pos->teamBoards[2]);
+	while (pieces) {
+		const uint32_t rook = long_bit_scan(pieces);
+		const uint64_t moves = rook_attacks(board, rook) & non_team;
+		move_list = Move_Generator::generate_sliding_moves(move_list, board, moves, rook);
+		pieces &= pieces - 1;
+	}
+	return move_list;
+}
+
+uint16_t* Move_Generator::generate_bishop_moves(uint16_t* move_list, Position* pos, bool white) {
+	uint64_t pieces = white ? pos->pieceBoards[3] : pos->pieceBoards[9];
+	const uint64_t board = pos->teamBoards[0];
+	const uint64_t non_team = white ? ~(pos->teamBoards[1]) : ~(pos->teamBoards[2]);
+	while (pieces) {
+		const uint32_t bishop = long_bit_scan(pieces);
+		const uint64_t moves = 0ULL & non_team; //TODO implement bishop moves
+		move_list = Move_Generator::generate_sliding_moves(move_list, board, moves, bishop);
+		pieces &= pieces - 1;
+	}
+	return move_list;
+}
+uint16_t* Move_Generator::generate_queen_moves(uint16_t* move_list, Position* pos, bool white) {
+	uint64_t pieces = white ? pos->pieceBoards[5] : pos->pieceBoards[11];
+	const uint64_t board = pos->teamBoards[0];
+	const uint64_t non_team = white ? ~(pos->teamBoards[1]) : ~(pos->teamBoards[2]);
+	while (pieces) {
+		const uint32_t queen = long_bit_scan(pieces);
+		const uint64_t moves = (rook_attacks(board, queen) | 0ULL) & non_team; //Needs bishop moves to work
+		move_list = Move_Generator::generate_sliding_moves(move_list, board, moves, queen);
+		pieces &= pieces - 1;
+	}
+	return move_list;
+}
 
 //Currently returns rook moves
-uint16_t* Move_Generator::generate_sliding_moves(uint16_t* move_list, Position* pos, bool white) {
-	const uint64_t team = white ? pos->teamBoards[1] : pos->teamBoards[2];
-	const uint64_t board = pos->teamBoards[0];
-	uint64_t sliders = white ? pos->pieceBoards[5] : pos->pieceBoards[10];
-	while (sliders) {
-		uint32_t slider = long_bit_scan(sliders);
-		uint64_t moves = rook_attacks(board, slider) & ~team;
-		while (moves) {
-			uint32_t dest = long_bit_scan(moves);
-			const uint16_t cap = ((board & (1ULL << dest)) == 0) ? 0 : 0x4000; //intersection with board gives captures
-			*move_list++ = (uint16_t)(dest | slider << 6 | cap);
-			moves &= moves - 1;
-		}
-		sliders &= sliders - 1;
+uint16_t* Move_Generator::generate_sliding_moves(uint16_t* move_list, uint64_t board, uint64_t moves, uint32_t piece) {
+	while (moves) {
+		uint32_t dest = long_bit_scan(moves);
+		const uint16_t cap = ((board & (1ULL << dest)) == 0) ? 0 : 0x4000; //intersection with board gives captures
+		*move_list++ = (uint16_t)(dest | piece << 6 | cap);
+		moves &= moves - 1;
 	}
 	return move_list;
 }
@@ -192,9 +222,7 @@ uint64_t Move_Generator::file_attacks(uint64_t board, int rook_pos) {
 	int occupancy = (int)((file_to_rank(board, file) >> 1) & 0b111111);
 	uint64_t fileAttack = rook_attack_table[rook_pos / 8][occupancy];
 	fileAttack = rank_to_file(fileAttack, 0);
-	fileAttack = fileAttack >> (7 - file);
-	//print_bit_board(fileAttack);
-	return fileAttack;
+	return fileAttack >> (7 - file);
 }
 
 uint64_t Move_Generator::rank_attacks(uint64_t board, int rook_pos) {

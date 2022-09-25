@@ -4,8 +4,19 @@
 
 Chess* chess;
 
+#define DEBUGWIN
+
+#ifdef DEBUGWIN
+#define WIDTH 1300
+#define HEIGHT 1000 
+#else
+#define WIDTH 1000
+#define HEIGHT 1000 
+#endif
+
+
 int main(int argc, char* argv[]) {
-	chess = new Chess();
+	chess = new Chess(WIDTH, HEIGHT);
 
 	chess->main_loop();
 	

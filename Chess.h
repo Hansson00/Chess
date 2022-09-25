@@ -8,11 +8,15 @@
 class Chess {
 
 public:
-	Chess();
+	Chess(Uint16 width, uint16_t height);
 	uint8_t held_piece = 255;
 	void main_loop();
 
 private:
+	//for test!!
+	double eval_test = -6.235;
+
+
 	Sound_Manager* sound_manager;
 	Window* window;
 	Engine* engine;

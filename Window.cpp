@@ -14,6 +14,8 @@ Window::Window(uint32_t window_width, uint32_t window_height) {
 	else
 		std::cout << "Cound not init Window... \n";
 	
+	eval_bar = new Eval_Bar(1005,this->height);
+
 	generate_textures();
 	generate_board_texture();
 	generate_attack_texture();
@@ -48,12 +50,20 @@ void Window::draw_pieces(uint64_t* bit_board, uint64_t mask) {
 }
 
 void Window::draw_board() {
-	SDL_Rect rect = { 0,0,  width , height};
+	SDL_Rect rect = { 0,0,  height , height};
 	SDL_RenderCopy(renderer, board, NULL, &rect);
+}
+
+void Window::draw_eval_bar(double_t score){
+	eval_bar_texture = SDL_CreateTextureFromSurface(renderer, eval_bar->create_eval_surface(score));
+	SDL_RenderCopy(renderer, eval_bar_texture, NULL, &(eval_bar->bar_rect));
+	SDL_DestroyTexture(eval_bar_texture);
 }
 
 void Window::update() {
 	SDL_RenderPresent(renderer);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+	SDL_RenderClear(renderer);
 }
 
 void Window::mouse_grid_pos(int* x, int* y) {
@@ -94,16 +104,16 @@ void Window::generate_attack_texture() {
 void Window::generate_board_texture() {
 
 	uint32_t mini_padding = 1;
-	SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
-	SDL_Rect rect = { 0, 0, width, height };
+	SDL_Surface* surface = SDL_CreateRGBSurface(0, height, height, 32, 0, 0, 0, 0);
+	SDL_Rect rect = { 0, 0, height, height };
 	SDL_FillRect(surface, &rect, 0x0000ff); // draw blue background
 	rect.x = padding - mini_padding;
 	rect.y = padding - mini_padding;
-	rect.w = 1000 - (padding - mini_padding) * 2; 
-	rect.h = 1000 - (padding - mini_padding) * 2;
+	rect.w = height - (padding - mini_padding) * 2;
+	rect.h = height - (padding - mini_padding) * 2;
 	SDL_FillRect(surface, &rect, 0xffffff); // draw all white squares background
 
-	piece_size = (width - (padding) * 2) / 8;
+	piece_size = (height - (padding) * 2) / 8;
 
 	rect.w = piece_size;
 	rect.h = piece_size;

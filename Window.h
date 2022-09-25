@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "SDL_image.h"
 #include "Chess_utility.h"
+#include "Eval_Bar.h"
 
 
 class Window {
@@ -14,6 +15,7 @@ public:
 
 	void draw_pieces(uint64_t* bit_board, uint64_t mask);
 	void draw_board();
+	void draw_eval_bar(double_t score);
 	void update();
 	void mouse_grid_pos(int* x, int* y);
 	void draw_piece_at_mouse(int piece);
@@ -23,12 +25,15 @@ public:
 	SDL_Texture* attack_square;
 
 private:
-	
-	SDL_Window* window;
+
 	SDL_Renderer* renderer;
+	SDL_Window* window;
+	
 	SDL_Texture** pieces;
 	SDL_Texture* board;
-	
+	SDL_Texture* eval_bar_texture;
+
+	Eval_Bar* eval_bar;
 
 	int width;
 	int height;
@@ -39,7 +44,4 @@ private:
 	void generate_board_texture();
 	void generate_circle_texture();
 	void generate_attack_texture();
-	
-	
-
 };

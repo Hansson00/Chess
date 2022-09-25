@@ -1,9 +1,9 @@
 #include "Chess.h"
 #include "Engine.h"
 
-Chess::Chess() {
+Chess::Chess(Uint16 width, uint16_t height) {
     SDL_Init(SDL_INIT_EVERYTHING);
-    window = new Window(1000, 1000);
+    window = new Window(width, height);
     sound_manager = new Sound_Manager();
     engine = new Engine();
 
@@ -40,14 +40,16 @@ void Chess::events() {
 void Chess::draw() {
     window->draw_board();
     uint16_t move_list[40];
-    window->draw_texture_at_square(engine->move_squares(move_list, engine->get_legal_moves(move_list)), window->attack_square);
+    //window->draw_texture_at_square(engine->move_squares(move_list, engine->get_legal_moves(move_list)), window->attack_square);
     window->draw_pieces(engine->pos.pieceBoards, held_piece_board);
     if (held_piece != 255) {
         window->draw_piece_at_mouse(held_piece);
         uint16_t move_list1[40];
         window->draw_texture_at_square(engine->generate_held_piece_moves(move_list1, held_piece, &(engine->pos),held_piece_board), window->legal_circle);
     }
+    window->draw_eval_bar(eval_test);
     window->update();
+    
 }
 
 void Chess::mouse_event(uint8_t button, bool mouse_down) {
@@ -82,6 +84,9 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
             }
             held_piece = 255;
             held_piece_board = 0;
+
+            //EVAL TEST!!!
+            eval_test += 0.4534;
         }
     }
 }

@@ -80,9 +80,6 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 chagne_bitboards(held_piece, mouse_pos, 0);
                 sound_manager->play_sound(sound_manager->move);
             }
-            else if(held_piece != 255) {
-                engine->pos.pieceBoards[held_piece] = held_piece_board;
-            }
             held_piece = 255;
             held_piece_board = 0;
         }

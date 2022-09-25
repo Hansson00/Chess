@@ -12,7 +12,7 @@ public:
 	Window(uint32_t window_width, uint32_t window_height);
 	~Window();
 
-	void draw_pieces(uint64_t bit_board[]);
+	void draw_pieces(uint64_t* bit_board, uint64_t mask);
 	void draw_board();
 	void update();
 	void mouse_grid_pos(int* x, int* y);

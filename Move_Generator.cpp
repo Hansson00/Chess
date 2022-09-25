@@ -193,7 +193,7 @@ uint64_t Move_Generator::file_attacks(uint64_t board, int rook_pos) {
 	uint64_t fileAttack = rook_attack_table[rook_pos / 8][occupancy];
 	fileAttack = rank_to_file(fileAttack, 0);
 	fileAttack = fileAttack >> (7 - file);
-	print_bit_board(fileAttack);
+	//print_bit_board(fileAttack);
 	return fileAttack;
 }
 

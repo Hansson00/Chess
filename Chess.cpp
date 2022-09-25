@@ -13,10 +13,7 @@ void Chess::main_loop() {
 
     while (running) {
         events();
-        draw();
-
-
-        
+        draw();     
     }
 }
 
@@ -44,7 +41,7 @@ void Chess::draw() {
     window->draw_board();
     uint16_t move_list[40];
     //window->draw_texture_at_square(engine->move_squares(move_list, engine->get_legal_moves(move_list)), window->attack_square);
-    window->draw_pieces(engine->pos.pieceBoards);
+    window->draw_pieces(engine->pos.pieceBoards, held_piece_board);
     if (held_piece != 255) {
         window->draw_piece_at_mouse(held_piece);
         uint16_t move_list1[40];
@@ -83,10 +80,8 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 chagne_bitboards(held_piece, mouse_pos, 0);
                 sound_manager->play_sound(sound_manager->move);
             }
-            else if(held_piece != 255) {
-                engine->pos.pieceBoards[held_piece] = held_piece_board;
-            }
             held_piece = 255;
+            held_piece_board = 0;
         }
     }
 }

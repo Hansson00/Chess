@@ -31,11 +31,12 @@ Window::~Window() {
 			SDL_DestroyTexture(pieces[i]);
 }
 
-void Window::draw_pieces(uint64_t* bit_board) {
+void Window::draw_pieces(uint64_t* bit_board, uint64_t mask) {
 
 	SDL_Rect rect = { 0, 0, piece_size, piece_size };
 	for (int i = 0; i < 12; i++) {
 		uint64_t p = bit_board[i];
+		p &= ~mask;
 		while (p) {
 			uint32_t index = long_bit_scan(p);
 			rect.x = index % 8 * rect.w + padding;

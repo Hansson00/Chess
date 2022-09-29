@@ -43,6 +43,31 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
 
 
 
+void Engine::update_attack() {
+    if (pos.whiteToMove) { //Only need to update black attack
+        uint64_t black_attack = 0ULL;
+        const int king_pos = long_bit_scan(pos.pieceBoards[6]);
+        black_attack |= king_attacks[king_pos];
+        black_attack |= pawn_attacks(pos.pieceBoards[7], false);
+        black_attack |= piece_attacks(pos.teamBoards[0], pos.pieceBoards[8], 0);
+        black_attack |= piece_attacks(pos.teamBoards[0], pos.pieceBoards[9], 1);
+        black_attack |= piece_attacks(pos.teamBoards[0], pos.pieceBoards[10], 2);
+        black_attack |= piece_attacks(pos.teamBoards[0], pos.pieceBoards[11], 3);
+        pos.blackAttack = black_attack;
+    }
+    else{
+        uint64_t white_attack = 0ULL;
+        const int king_pos = long_bit_scan(pos.pieceBoards[0]);
+        white_attack |= king_attacks[king_pos];
+        white_attack |= pawn_attacks(pos.pieceBoards[1], true);
+        white_attack |= piece_attacks(pos.teamBoards[0], pos.pieceBoards[2], 0);
+        white_attack |= piece_attacks(pos.teamBoards[0], pos.pieceBoards[3], 1);
+        white_attack |= piece_attacks(pos.teamBoards[0], pos.pieceBoards[4], 2);
+        white_attack |= piece_attacks(pos.teamBoards[0], pos.pieceBoards[5], 3);
+        pos.whiteAttack = white_attack;
+    }
+}
+
 
 void Engine::fenInit(std::string fen) {
     uint32_t i = 0;
@@ -80,14 +105,13 @@ void Engine::fenInit(std::string fen) {
         
         }
     }
-    pos.enPassant = 40;
-    pos.whiteAttack = 0;
-    pos.blackAttack = 0;
+    pos.whiteToMove = true;
     pos.teamBoards[1] = pos.pieceBoards[0] | pos.pieceBoards[1] | pos.pieceBoards[2] |
                         pos.pieceBoards[3] | pos.pieceBoards[4] | pos.pieceBoards[5];
     pos.teamBoards[2] = pos.pieceBoards[6] | pos.pieceBoards[7] | pos.pieceBoards[8] |
                         pos.pieceBoards[9] | pos.pieceBoards[10] | pos.pieceBoards[11];
     pos.teamBoards[0] = pos.teamBoards[1] | pos.teamBoards[2];
+    Engine::update_attack();
 }
 
 

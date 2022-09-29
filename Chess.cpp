@@ -38,9 +38,11 @@ void Chess::events() {
 }
 
 void Chess::draw() {
+    
     window->draw_board();
     uint16_t move_list[40];
     //window->draw_texture_at_square(engine->move_squares(move_list, engine->get_legal_moves(move_list)), window->attack_square);
+    window->draw_texture_at_square(engine->pos.blackAttack, window->attack_square);
     window->draw_pieces(engine->pos.pieceBoards, held_piece_board);
     if (held_piece != 255) {
         window->draw_piece_at_mouse(held_piece);
@@ -109,6 +111,7 @@ void Chess::chagne_bitboards(uint32_t p, uint64_t add, uint64_t remove) {
         else
             engine->pos.teamBoards[2] &= ~remove;
     }
+    engine->update_attack();
 }
 
 

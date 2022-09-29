@@ -29,11 +29,16 @@ protected:
 	uint16_t* add_promotion(uint16_t* move_list, uint16_t move);
 	const uint64_t shift_up(uint64_t pawns, bool white);
 	const uint64_t shift_side(uint64_t pawns, bool right, bool white);
+	uint64_t piece_attacks(uint64_t board, uint64_t pieces, int piece_pos);
 	const uint64_t pawn_attacks(uint64_t pawns, bool white);
+	uint64_t knight_attacks(uint64_t board, int knight_pos);
 	uint64_t rook_attacks(uint64_t board, int rook_pos);
+	uint64_t bishop_attacks(uint64_t board, int bishop_pos);
+	uint64_t queen_attacks(uint64_t board, int queen_pos);
 	void init_knight_attacks();
 	void init_king_attacks();
 	uint64_t king_attacks[64];
+	
 	uint64_t file_attacks(uint64_t board, int rook_pos);
 	uint64_t rank_attacks(uint64_t board, int rook_pos);
 
@@ -41,8 +46,6 @@ private:
 
 	//uint16_t* (Move_Generator::* arr[6])(uint16_t*, Position*, bool) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves };
 	// = {&generate_king_moves, &generate_pawn_moves ,&generate_knight_moves, &generate_pawn_moves, &generate_pawn_moves, &generate_pawn_moves};
-
-	uint64_t knight_attacks[64];
 	uint64_t files[8] = { 0x0101010101010101LL, 0x0202020202020202LL, 0x0404040404040404LL,
 		0x0808080808080808LL, 0x1010101010101010LL, 0x2020202020202020LL, 0x4040404040404040LL,
 		0x8080808080808080LL };
@@ -54,12 +57,34 @@ private:
 	uint64_t anti_diagonals[15] = {0x1ULL, 0x0102ULL, 0x010204ULL, 0x01020408ULL, 0x0102040810ULL, 0x010204081020ULL, 0x01020408102040ULL,
 			0x0102040810204080ULL, 0x0204081020408000ULL, 0x0408102040800000ULL, 0x0810204080000000ULL, 0x1020408000000000ULL,
 			0x2040800000000000ULL, 0x4080000000000000ULL, 0x8000000000000000ULL };
+	uint32_t mask_bits[15] = {0,0,1,3,7,15,31,63,31,15,7,3,1,0,0};
 	uint64_t shifted_anti_diagonal = (1ULL) | (1ULL << 7) | (1ULL << 14) | (1ULL << 21) | (1ULL << 28) | (1ULL << 35) | (1ULL << 42) | (1ULL << 49);
+	
+	uint64_t (Move_Generator::* attack_function[4])(uint64_t, int) = {&Move_Generator::knight_attacks, &Move_Generator::bishop_attacks, 
+		&Move_Generator::rook_attacks, &Move_Generator::queen_attacks};
+
+	//ATTACK TABLES
 	uint64_t rook_attack_table[8][64];
-	uint64_t calc_row_attack(uint64_t row_occupancy, int pos);
-	void init_row_attacks();
+	uint64_t knight_attack[64];
+	uint64_t** bishop_main[15];
+	uint64_t** bishop_anti[15];
+	
+	//ROTATION FUNCTIONS
 	uint64_t rank_to_file(uint64_t board, int rank);
 	uint64_t file_to_rank(uint64_t board, int file);
+
+
+	//INITIALIZATION FUNCTIONS USED AT START OF PROGRAM
+	uint64_t antidiagonal_attacks(uint64_t board, int bishop_pos);
+	uint64_t maindiagonal_attacks(uint64_t board, int bishop_pos);
+	uint64_t calc_row_attack(uint64_t row_occupancy, int pos);
+	uint64_t calc_maindiagonal_attack(uint64_t board_occupancy, int pos);
+	uint64_t calc_antidiagonal_attack(uint64_t board_occupancy, int pos);
+	void init_maindiagonal_attacks();
+	void init_antidiagonal_attacks();
+	void init_row_attacks();
+	uint64_t set_maindiagonal_occupancy(uint64_t diagonal, uint32_t occupancy);
+	uint64_t set_antidiagonal_occupancy(uint64_t diagonal, uint32_t occupancy);
 	
 
 

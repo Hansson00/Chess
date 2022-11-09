@@ -3,6 +3,10 @@
 #include <iostream>
 using namespace std;
 
+
+
+
+
 uint32_t bit_scan(uint32_t i) {
 	i = ~i & (i - 1);
 	if (i <= 0) return i & 32;

@@ -1,5 +1,6 @@
 #include "Chess.h"
 #include "Engine.h"
+#include "Move_Generator.h"
 
 Chess::Chess(Uint16 width, uint16_t height) {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -40,14 +41,12 @@ void Chess::events() {
 void Chess::draw() {
     
     window->draw_board();
-    uint16_t move_list[40];
-    //window->draw_texture_at_square(engine->move_squares(move_list, engine->get_legal_moves(move_list)), window->attack_square);
-    window->draw_texture_at_square(engine->pos.blackAttack, window->attack_square);
+    //window->draw_texture_at_square(engine->move_squares(engine->pos.whiteAttack, window->attack_square);
+    window->draw_texture_at_square(engine->pos.pinnedPieces, window->attack_square);
     window->draw_pieces(engine->pos.pieceBoards, held_piece_board);
     if (held_piece != 255) {
         window->draw_piece_at_mouse(held_piece);
-        uint16_t move_list1[40];
-        window->draw_texture_at_square(engine->generate_held_piece_moves(move_list1, held_piece, &(engine->pos),held_piece_board), window->legal_circle);
+        window->draw_texture_at_square(engine->generate_held_piece_moves(held_piece, &(engine->pos),held_piece_board), window->legal_circle);
     }
     window->draw_eval_bar(eval_test);
     window->update();
@@ -75,6 +74,24 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         }
         else { // Place piece
             if (x < 8 && y < 8 && held_piece != 255) { // Check if this legal is as well
+                Move_Generator::Move_list move_list;
+                memset(move_list.move_list, 0, 60 * sizeof(uint16_t));
+                move_list.last = move_list.move_list;
+                engine->get_legal_moves(&move_list);
+                const uint16_t move = (uint16_t)(tmp | long_bit_scan(held_piece_board) << 6);
+                const uint16_t real_move = move_list.contains(move);
+                if (real_move != 0) {
+                    engine->make_move(&(engine->pos), real_move);
+                    switch (engine->sound) {
+                    case Engine::s_move: sound_manager->play_sound(sound_manager->move); break;
+                    case Engine::s_capture: sound_manager->play_sound(sound_manager->capture); break;
+                    case Engine::s_castle: sound_manager->play_sound(sound_manager->castle); break;
+                    case Engine::s_check: sound_manager->play_sound(sound_manager->check); break;
+                    }
+                }
+                
+
+                /*
                 chagne_bitboards(held_piece, 0, held_piece_board);
                 for (int i = 0; i < 12; i++)
                     if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
@@ -82,7 +99,9 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                         break;
                     }
                 chagne_bitboards(held_piece, mouse_pos, 0);
-                sound_manager->play_sound(sound_manager->move);
+                
+                */
+                
             }
             held_piece = 255;
             held_piece_board = 0;
@@ -111,7 +130,7 @@ void Chess::chagne_bitboards(uint32_t p, uint64_t add, uint64_t remove) {
         else
             engine->pos.teamBoards[2] &= ~remove;
     }
-    engine->update_attack();
+    engine->update_attack(&(engine->pos));
 }
 
 

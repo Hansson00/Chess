@@ -20,7 +20,8 @@ void Chess::main_loop() {
 
     while (running) {
         events();
-        //draw();     
+        draw();
+        command_promt();
     }
 }
 
@@ -72,12 +73,6 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         uint64_t mouse_pos = 1Ull << (x + y * 8);
 
         if (mouse_down && x < 8 && y < 8) { // Pick up piece
-            auto start = std::chrono::system_clock::now();
-            engine->perft(6, &engine->pos);
-            auto end = std::chrono::system_clock::now();
-            std::chrono::duration<double> diff = end - start;
-            std::cout << "Time:" << diff.count() << std::endl;
-
             for (int i = 0; i < 12; i++)
                 if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
                     held_piece = i;
@@ -144,4 +139,26 @@ void Chess::chagne_bitboards(uint32_t p, uint64_t add, uint64_t remove) {
     engine->update_attack(&(engine->pos));
 }
 
+void Chess::command_promt() {
 
+    static std::string str;
+    char ch = (char)std::cin.get();
+    
+    
+    if (ch == '\n') {
+        auto start = std::chrono::system_clock::now();
+        if (std::strcmp(str.c_str(), "perft 1") == 0) { engine->perft(1, &engine->pos); }
+        else if (std::strcmp(str.c_str(), "perft 2") == 0) { engine->perft(2, &engine->pos); }
+        else if (std::strcmp(str.c_str(), "perft 3") == 0) { engine->perft(3, &engine->pos); }
+        else if (std::strcmp(str.c_str(), "perft 4") == 0) { engine->perft(4, &engine->pos); }
+        else if (std::strcmp(str.c_str(), "perft 5") == 0) { engine->perft(5, &engine->pos); }
+        else if (std::strcmp(str.c_str(), "perft 6") == 0) { engine->perft(6, &engine->pos); }
+        else if (std::strcmp(str.c_str(), "perft 7") == 0) { engine->perft(7, &engine->pos); }
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> diff = end - start;
+        std::cout << "Time:" << diff.count() << std::endl;
+
+        str = "";
+    }
+    else {str += ch;}
+}

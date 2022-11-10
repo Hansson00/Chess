@@ -23,6 +23,7 @@ private:
 
 	void events();
 	void draw();
+	void command_promt();
 	//void sound_effects();
 	
 	bool running = true;

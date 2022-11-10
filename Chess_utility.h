@@ -47,14 +47,14 @@ struct Move_list {
 		return 0; //Move not found
 	}
 	~Move_list() {
-		delete(move_list);
+		//delete(move_list);
 	}
 	void clear() {last = move_list;}
 	void add_move(const uint16_t move) { *last++ = move; }
 	uint16_t to_sq(const uint16_t move) const { return move & 0x3F; }
 	uint16_t from_sq(const uint16_t move) const { return (move >> 6) & 0x3F; }
 	uint16_t flags(const uint16_t move) const { return move >> 12; }
-	uint16_t* move_list = new uint16_t[60];
+	uint16_t move_list[60];
 	uint16_t* last = move_list; //60 should be enough space for all moves
 };
 

@@ -2,7 +2,9 @@
 using namespace std;
 
 Engine::Engine() {
-    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+
+    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
 }
 
 Engine::~Engine() {
@@ -343,8 +345,8 @@ void Engine::en_passant(Position* pos, int pushedPawn) {
         uint64_t sliders = pos->pieceBoards[4] | pos->pieceBoards[5];
         //If any of the slider occupy the fifth rank then we need to check for pin
         if ((sliders & 0xFF00000000L) > 0) {
-            uint64_t slideAttack = piece_attacks(pos->teamBoards[0], sliders, 1);
-            uint64_t kingAttack = piece_attacks(pos->teamBoards[0], pos->pieceBoards[6], 1);
+            uint64_t slideAttack = piece_attacks(pos->teamBoards[0], sliders, 6);
+            uint64_t kingAttack = piece_attacks(pos->teamBoards[0], pos->pieceBoards[6], 6);
             uint64_t pawnPos = 1ULL << pushedPawn;
             //If either the king or sliders see the en passant pawn then a possible pin is there
             if ((slideAttack & pawnPos) != 0) {
@@ -368,8 +370,8 @@ void Engine::en_passant(Position* pos, int pushedPawn) {
         uint64_t sliders = pos->pieceBoards[10] | pos->pieceBoards[11];
         //If any of the slider occupy the forth rank then we need to check for pin
         if ((sliders & 0xFF000000L) > 0) {
-            uint64_t slideAttack = piece_attacks(pos->teamBoards[0], sliders, 1);
-            uint64_t kingAttack = piece_attacks(pos->teamBoards[0], pos->pieceBoards[0], 1);
+            uint64_t slideAttack = piece_attacks(pos->teamBoards[0], sliders, 6);
+            uint64_t kingAttack = piece_attacks(pos->teamBoards[0], pos->pieceBoards[0], 6);
             uint64_t pawnPos = 1ULL << pushedPawn;
             //If either the king or sliders see the en passant pawn then a possible pin is there
             if ((slideAttack & pawnPos) != 0) {
@@ -496,12 +498,12 @@ void Engine::fenInit(Position* pos, std::string fen) {
         
         }
     }
-    pos->whiteToMove = true;
     pos->teamBoards[1] = pos->pieceBoards[0] | pos->pieceBoards[1] | pos->pieceBoards[2] |
                         pos->pieceBoards[3] | pos->pieceBoards[4] | pos->pieceBoards[5];
     pos->teamBoards[2] = pos->pieceBoards[6] | pos->pieceBoards[7] | pos->pieceBoards[8] |
                         pos->pieceBoards[9] | pos->pieceBoards[10] | pos->pieceBoards[11];
     pos->teamBoards[0] = pos->teamBoards[1] | pos->teamBoards[2];
+    pos->enPassant = 0xFF;
     Engine::update_attack(pos);
 }
 

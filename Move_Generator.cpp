@@ -68,11 +68,11 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 	}
 	
 	
-	if (pos->enPassant != 0xFF) {
+	if (pos->enPassant != 0xFF && block == ~0) {
 		const int pseudo = pos->enPassant & 0xFF;
-		uint64_t epPos = 1ULL << pseudo;
+		uint64_t epPos = (1ULL << pseudo);
 		//Reverse pawnAttack gives potential attackers of the ep square
-		uint64_t attackers = pawn_attacks(epPos, !white_to_move) & non_promoting & (ranks[4] | ranks[3]); //ranks is redundant I think
+		uint64_t attackers = pawn_attacks(epPos, !white_to_move) & non_promoting; //ranks is redundant I think
 		while (attackers != 0) {
 			int pawn = long_bit_scan(attackers);
 			uint16_t move = (uint16_t)(pseudo | pawn << 6 | 0x5000); //0x5000 flag for ep capture
@@ -87,27 +87,27 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 		uint64_t promoCapRight = shift_side(promoting & ~files[7], true, white_to_move) & opponent;
 		while (promoPush != 0) {
 			int dest = long_bit_scan(promoPush);
-			add_promotion(move_list, (uint16_t)(dest | (dest - back) << 6 | 0x8000));
+			add_promotion(move_list, (uint16_t)(dest | (dest + back) << 6 | 0x8000));
 			promoPush &= promoPush - 1;
 		}
 		while (promoCapLeft != 0) {
 			int dest = long_bit_scan(promoCapLeft);
-			add_promotion(move_list, (uint16_t)(dest | (dest - back_left) << 6 | 0xC000));
+			add_promotion(move_list, (uint16_t)(dest | (dest + back_left) << 6 | 0xC000));
 			promoCapLeft &= promoCapLeft - 1;
 		}
 		while (promoCapRight != 0) {
 			int dest = long_bit_scan(promoCapRight);
-			add_promotion(move_list, (uint16_t)(dest | (dest - back_right) << 6 | 0xC000));
+			add_promotion(move_list, (uint16_t)(dest | (dest + back_right) << 6 | 0xC000));
 			promoCapRight &= promoCapRight - 1;
 		}
 	}
 }
 
 void Move_Generator::add_promotion(Move_list* move_list, uint16_t move) {
+	move_list->add_move((uint16_t)(move | 0x3000));
 	move_list->add_move(move);
 	move_list->add_move((uint16_t)(move | 0x1000));
 	move_list->add_move((uint16_t)(move | 0x2000));
-	move_list->add_move((uint16_t)(move | 0x3000));
 }
 
 

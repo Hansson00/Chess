@@ -25,7 +25,7 @@ public:
 	Sound sound;
 
 	uint64_t move_squares(uint16_t* moves, uint16_t* end);
-	void get_legal_moves();
+	Move_list* get_legal_moves(Position * pos);
 	uint64_t generate_held_piece_moves(uint16_t p, Position* pos, uint64_t mask);
 	
 	void make_move(Position* pos, uint16_t move);

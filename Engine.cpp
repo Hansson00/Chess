@@ -10,19 +10,23 @@ Engine::~Engine() {
 }
 
 
-//Generates all legal move in current game state, and stores them in provided Move_list
-void Engine::get_legal_moves() {
-    move_list.init();
-    generate_king_moves(&move_list, &pos);
-    generate_pawn_moves(&move_list, &pos);
-    generate_knight_moves(&move_list, &pos);
-    generate_bishop_moves(&move_list, &pos);
-    generate_rook_moves(&move_list, &pos);
-    generate_queen_moves(&move_list, &pos);
 
-    if (pos.pinnedPieces != 0) { //Filter out pinned moves
-        filter_pins(&move_list, &pos);
+//Generates all legal move in current game state, and stores them in provided Move_list
+Move_list* Engine::get_legal_moves(Position* pos) {
+
+    Move_list* move_list = new Move_list;
+
+    generate_king_moves(move_list, pos);
+    generate_pawn_moves(move_list, pos);
+    generate_knight_moves(move_list, pos);
+    generate_bishop_moves(move_list, pos);
+    generate_rook_moves(move_list, pos);
+    generate_queen_moves(move_list, pos);
+
+    if (pos->pinnedPieces != 0) { //Filter out pinned moves
+        filter_pins(move_list, pos);
     }
+    return move_list;
 }
 
 void Engine::get_all_moves(Move_list* m_l, Position* p) {
@@ -84,7 +88,7 @@ uint64_t Engine::perft(int depth) {
    
     //Copy current pos
     memcpy(pos_list.curr_pos, &pos, sizeof(pos));
-    get_legal_moves();
+    get_legal_moves(&pos);
 
     for (uint16_t* move = move_list.start(); move < move_list.end(); move++) {
         parse_move(*move);
@@ -251,7 +255,7 @@ void Engine::update_attack(Position* pos) {
     }
     find_pins(pos);
     //Checkmate, this will not be necessary during perft
-    get_legal_moves();
+    get_legal_moves(pos);
     if (move_list.size() == 0)
         sound = s_checkmate;
 

@@ -78,12 +78,12 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         }
         else { // Place piece
             if (x < 8 && y < 8 && held_piece != 255) { // Check if this legal is as well
-                engine->get_legal_moves();
+                Move_list* move_list = engine->get_legal_moves(&engine->pos);
                 const uint16_t mouse_move = (uint16_t)(tmp | long_bit_scan(held_piece_board) << 6);
-                const uint16_t real_move = engine->move_list.contains(mouse_move);
+                const uint16_t real_move = move_list->contains(mouse_move);
                 if (real_move != 0) {
                     engine->make_move(&(engine->pos), real_move);
-                    switch (engine->sound) {
+                    switch (engine->sound){
                     case Engine::s_move: sound_manager->play_sound(sound_manager->move); break;
                     case Engine::s_capture: sound_manager->play_sound(sound_manager->capture); break;
                     case Engine::s_castle: sound_manager->play_sound(sound_manager->castle); break;

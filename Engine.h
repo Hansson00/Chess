@@ -29,11 +29,10 @@ public:
 	uint64_t generate_held_piece_moves(uint16_t p, Position* pos, uint64_t mask);
 	
 	void make_move(Position* pos, uint16_t move);
-	void undo_move(Position* prev_pos);
+	void undo_move(Position_list* prev_pos);
 	void update_attack(Position* pos);
-	void get_all_moves(Move_list* m_l, Position* p);
 
-	uint64_t perft(int depth);
+	void perft(int depth, Position* pos);
 	uint64_t search(int depth, Position_list* p_list);
 	void parse_move(uint16_t move);
 	

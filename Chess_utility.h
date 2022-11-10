@@ -60,7 +60,11 @@ struct Move_list {
 
 struct Position_list {
 	Position_list* prev_positions;
-	Position* curr_pos;
-	Position_list(Position_list* _prev, Position* _curr_pos) : 
-		prev_positions(_prev), curr_pos(_curr_pos) {};
+	Position* curr_pos = new Position;
+	Position* prev_pos = new Position;
+	Position_list(Position_list* _prev, Position* _prev_pos, Position* _curr_pos){
+		memcpy(curr_pos, _curr_pos, sizeof(Position));
+		memcpy(prev_pos, _prev_pos, sizeof(Position));
+		prev_positions = _prev;
+	};
 };

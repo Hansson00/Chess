@@ -29,19 +29,6 @@ Move_list* Engine::get_legal_moves(Position* pos) {
     return move_list;
 }
 
-void Engine::get_all_moves(Move_list* m_l, Position* p) {
-    generate_king_moves(m_l, p);
-    generate_pawn_moves(m_l, p);
-    generate_knight_moves(m_l, p);
-    generate_bishop_moves(m_l, p);
-    generate_rook_moves(m_l, p);
-    generate_queen_moves(m_l, p);
-
-    if (pos.pinnedPieces != 0) { //Filter out pinned moves
-        filter_pins(m_l, p);
-    }
-}
-
 
 
 //Return the bitboard of moves for a given piece, used to draw move "dots"
@@ -80,53 +67,47 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
 }
 
 //THIS IS SOME SHIT CODE
-uint64_t Engine::perft(int depth) {
+void Engine::perft(int depth, Position* pos) {
     uint64_t num_positions = 0;
-    Position_list* pos_list = new Position_list(nullptr, nullptr);
+    Position_list* pos_list = new Position_list(nullptr, pos, pos);
+    Move_list* legal_moves = get_legal_moves(pos);
 
-   
-    //Copy current pos
-    memcpy(pos_list->curr_pos, &pos, sizeof(pos));
-    get_legal_moves(&pos);
-
-    for (uint16_t* move = move_list.start(); move < move_list.end(); move++) {
+    for (uint16_t* move = legal_moves->start(); move < legal_moves->end(); move++) {
+        //Print the move being made
         parse_move(*move);
-        make_move(&pos, *move);
+        make_move(pos_list->curr_pos, *move);
+
         uint64_t part = search(depth - 1, pos_list);
+
+        //Print how many positions are reached after the move
         cout << part << endl;
         num_positions += part;
-        //TODO: print the move and how many positions are reached
-        undo_move(pos_list->curr_pos);
+        undo_move(pos_list);
     }
-    //TODO: print total number of positions
+    delete(pos_list);
+    delete(legal_moves);
     cout << "Total: ";
     cout << num_positions << endl;
-    return num_positions;
 }
 
 
 uint64_t Engine::search(int depth, Position_list* prev_list) {
-    /*
     if (depth == 0)
         return 1;
     uint64_t num_positions = 0;
-    Position_list pos_list = new Position_list(prev_list);
-    pos_list.curr_pos = new Position;
-    //Copy current pos
-    memcpy(pos_list.curr_pos, &pos, sizeof(pos));
-    Move_list move_list;
-    move_list.clear();
-    //Get moves for current position
-    get_all_moves(&move_list, &pos);
-    int size =move_list.size();
+    //Save the current position in new position list
+    Position_list* pos_list = new Position_list(prev_list, prev_list->curr_pos, prev_list->curr_pos);
+    //Get legal moves for current position
+    Move_list* legal_moves = get_legal_moves(pos_list->curr_pos);
 
-    for (uint16_t* move = move_list.move_list; move < move_list.end(); move++) {
-        make_move(&pos, *move);
-        num_positions += search(depth - 1, &pos_list);
-        undo_move(pos_list.curr_pos);
+    for (uint16_t* move = legal_moves->start(); move < legal_moves->end(); move++) {
+        make_move(pos_list->curr_pos, *move);
+        num_positions += search(depth - 1, pos_list);
+        undo_move(pos_list);
     }
-    return num_positions;*/
-    return 0;
+    delete(legal_moves);
+    delete(pos_list);
+    return num_positions;
 }
 
 
@@ -212,8 +193,8 @@ void Engine::make_move(Position* pos, uint16_t move) {
     update_attack(pos);
 }
 
-void Engine::undo_move(Position* prev_pos){
-    memcpy(&pos, prev_pos, sizeof(pos));
+void Engine::undo_move(Position_list* pos_list){
+    memcpy(pos_list->curr_pos, pos_list->prev_pos, sizeof(Position));
 }
 
 
@@ -256,9 +237,10 @@ void Engine::update_attack(Position* pos) {
     }
     find_pins(pos);
     //Checkmate, this will not be necessary during perft
-    get_legal_moves(pos);
-    if (move_list.size() == 0)
+    Move_list* m = get_legal_moves(pos);
+    if (m->size() == 0)
         sound = s_checkmate;
+    delete(m);
 
 }
 

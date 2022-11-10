@@ -1,6 +1,12 @@
 #include "Chess.h"
 #include "Engine.h"
 #include "Move_Generator.h"
+#include "Chrono"
+
+
+void* operator new(size_t size){
+    return malloc(size);
+}
 
 Chess::Chess(Uint16 width, uint16_t height) {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -14,7 +20,7 @@ void Chess::main_loop() {
 
     while (running) {
         events();
-        draw();     
+        //draw();     
     }
 }
 
@@ -51,7 +57,7 @@ void Chess::draw() {
         window->draw_piece_at_mouse(held_piece);
         window->draw_texture_at_square(engine->generate_held_piece_moves(held_piece, &(engine->pos),held_piece_board), window->legal_circle);
     }
-    window->draw_eval_bar(eval_test);
+    //window->draw_eval_bar(eval_test);
     window->update();
     
 }
@@ -66,7 +72,11 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         uint64_t mouse_pos = 1Ull << (x + y * 8);
 
         if (mouse_down && x < 8 && y < 8) { // Pick up piece
-            engine->perft(4, &engine->pos);
+            auto start = std::chrono::system_clock::now();
+            engine->perft(6, &engine->pos);
+            auto end = std::chrono::system_clock::now();
+            std::chrono::duration<double> diff = end - start;
+            std::cout << "Time:" << diff.count() << std::endl;
 
             for (int i = 0; i < 12; i++)
                 if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
@@ -78,9 +88,10 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         }
         else { // Place piece
             if (x < 8 && y < 8 && held_piece != 255) { // Check if this legal is as well
-                Move_list* move_list = engine->get_legal_moves(&engine->pos);
+                Move_list move_list;
+                engine->get_legal_moves(&engine->pos, &move_list);
                 const uint16_t mouse_move = (uint16_t)(tmp | long_bit_scan(held_piece_board) << 6);
-                const uint16_t real_move = move_list->contains(mouse_move);
+                const uint16_t real_move = move_list.contains(mouse_move);
                 if (real_move != 0) {
                     engine->make_move(&(engine->pos), real_move);
                     switch (engine->sound){
@@ -91,9 +102,6 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     case Engine::s_checkmate: sound_manager->play_sound(sound_manager->checkmate); break;
                     }
                 }
-                delete(move_list);
-                
-
                 /*
                 chagne_bitboards(held_piece, 0, held_piece_board);
                 for (int i = 0; i < 12; i++)

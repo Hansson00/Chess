@@ -12,9 +12,7 @@ Engine::~Engine() {
 
 
 //Generates all legal move in current game state, and stores them in provided Move_list
-Move_list* Engine::get_legal_moves(Position* pos) {
-
-    Move_list* move_list = new Move_list;
+void Engine::get_legal_moves(Position* pos, Move_list* move_list) {
 
     generate_king_moves(move_list, pos);
     generate_pawn_moves(move_list, pos);
@@ -26,7 +24,6 @@ Move_list* Engine::get_legal_moves(Position* pos) {
     if (pos->pinnedPieces != 0) { //Filter out pinned moves
         filter_pins(move_list, pos);
     }
-    return move_list;
 }
 
 
@@ -69,44 +66,51 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
 //THIS IS SOME SHIT CODE
 void Engine::perft(int depth, Position* pos) {
     uint64_t num_positions = 0;
-    Position_list* pos_list = new Position_list(nullptr, pos, pos);
-    Move_list* legal_moves = get_legal_moves(pos);
+    Position prev = *pos;
+    Position_list pos_list = Position_list(nullptr, pos);
 
-    for (uint16_t* move = legal_moves->start(); move < legal_moves->end(); move++) {
+    Move_list legal_moves;
+    get_legal_moves(pos, &legal_moves);
+
+    for (uint16_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
         //Print the move being made
         parse_move(*move);
-        make_move(pos_list->curr_pos, *move);
+        make_move(&pos_list.curr_pos, *move);
 
-        uint64_t part = search(depth - 1, pos_list);
+        uint64_t part = search(depth - 1, &pos_list);
 
         //Print how many positions are reached after the move
         cout << part << endl;
         num_positions += part;
-        undo_move(pos_list);
+        undo_move(&pos_list, &prev);
     }
-    delete(pos_list);
-    delete(legal_moves);
     cout << "Total: ";
     cout << num_positions << endl;
 }
 
 
 uint64_t Engine::search(int depth, Position_list* prev_list) {
+    
     if (depth == 0)
         return 1;
-    uint64_t num_positions = 0;
-    //Save the current position in new position list
-    Position_list* pos_list = new Position_list(prev_list, prev_list->curr_pos, prev_list->curr_pos);
-    //Get legal moves for current position
-    Move_list* legal_moves = get_legal_moves(pos_list->curr_pos);
 
-    for (uint16_t* move = legal_moves->start(); move < legal_moves->end(); move++) {
-        make_move(pos_list->curr_pos, *move);
-        num_positions += search(depth - 1, pos_list);
-        undo_move(pos_list);
+    uint64_t num_positions = 0;
+    Position prev = prev_list->curr_pos;
+
+    //Save the current position in new position list
+    Position_list pos_list = Position_list(prev_list, &prev_list->curr_pos);
+    //Get legal moves for current position
+    Move_list legal_moves;
+    get_legal_moves(&pos_list.curr_pos, &legal_moves);
+
+    if (depth == 1)
+        return (uint64_t)legal_moves.size();
+
+    for (uint16_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
+        make_move(&pos_list.curr_pos, *move);
+        num_positions += search(depth - 1, &pos_list);
+        undo_move(&pos_list, &prev);
     }
-    delete(legal_moves);
-    delete(pos_list);
     return num_positions;
 }
 
@@ -114,9 +118,8 @@ uint64_t Engine::search(int depth, Position_list* prev_list) {
 void Engine::parse_move(uint16_t move) {
     int from = (move >> 6) & 0x3F;
     int to = move & 0x3F;
-    std::string parse = { (char)(from % 8 + 'a'), (char)('8' - from / 8),
-        (char)('a' + to % 8), (char)('8' - to / 8), ':' };
-    cout << parse;
+    cout << (char)(from % 8 + 'a') << (char)('8' - from / 8) 
+        << (char)('a' + to % 8) << (char)('8' - to / 8) << ':';
 }
 
 ////NOT FINISHED
@@ -193,8 +196,8 @@ void Engine::make_move(Position* pos, uint16_t move) {
     update_attack(pos);
 }
 
-void Engine::undo_move(Position_list* pos_list){
-    memcpy(pos_list->curr_pos, pos_list->prev_pos, sizeof(Position));
+void Engine::undo_move(Position_list* pos_list, Position* current){
+    pos_list->curr_pos = *current;
 }
 
 
@@ -236,11 +239,6 @@ void Engine::update_attack(Position* pos) {
         }
     }
     find_pins(pos);
-    //Checkmate, this will not be necessary during perft
-    Move_list* m = get_legal_moves(pos);
-    if (m->size() == 0)
-        sound = s_checkmate;
-    delete(m);
 
 }
 

@@ -66,7 +66,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         uint64_t mouse_pos = 1Ull << (x + y * 8);
 
         if (mouse_down && x < 8 && y < 8) { // Pick up piece
-            uint64_t sum = engine->perft(3);
+            //uint64_t sum = engine->perft(3);
 
             for (int i = 0; i < 12; i++)
                 if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
@@ -91,6 +91,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     case Engine::s_checkmate: sound_manager->play_sound(sound_manager->checkmate); break;
                     }
                 }
+                delete(move_list);
                 
 
                 /*

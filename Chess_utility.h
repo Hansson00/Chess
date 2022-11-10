@@ -26,7 +26,6 @@ struct Position {
 	}
 };
 
-
 uint32_t bit_scan(uint32_t);
 uint32_t long_bit_scan(uint64_t);
 uint32_t high_bit_scan(int32_t i);
@@ -47,14 +46,21 @@ struct Move_list {
 		}
 		return 0; //Move not found
 	}
-	void init() {
-		memset(move_list, 0, 60 * sizeof(uint16_t));
-		last = move_list;
+	~Move_list() {
+		delete(move_list);
 	}
+	void clear() {last = move_list;}
 	void add_move(const uint16_t move) { *last++ = move; }
 	uint16_t to_sq(const uint16_t move) const { return move & 0x3F; }
 	uint16_t from_sq(const uint16_t move) const { return (move >> 6) & 0x3F; }
 	uint16_t flags(const uint16_t move) const { return move >> 12; }
-	uint16_t move_list[60];
+	uint16_t* move_list = new uint16_t[60];
 	uint16_t* last = move_list; //60 should be enough space for all moves
+};
+
+struct Position_list {
+	Position_list* prev_positions;
+	Position* curr_pos;
+	Position_list(Position_list* _prev, Position* _curr_pos) : 
+		prev_positions(_prev), curr_pos(_curr_pos) {};
 };

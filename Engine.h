@@ -33,12 +33,6 @@ public:
 	void update_attack(Position* pos);
 	void get_all_moves(Move_list* m_l, Position* p);
 
-
-	struct Position_list {
-		Position_list* prev_positions;
-		Position* curr_pos;
-		Position_list(Position_list* _prev) : prev_positions(_prev), curr_pos(nullptr) {};
-	};
 	uint64_t perft(int depth);
 	uint64_t search(int depth, Position_list* p_list);
 	void parse_move(uint16_t move);

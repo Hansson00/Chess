@@ -82,22 +82,21 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
 //THIS IS SOME SHIT CODE
 uint64_t Engine::perft(int depth) {
     uint64_t num_positions = 0;
-    Position_list pos_list = new Position_list(nullptr);
-    pos_list.curr_pos = new Position;
+    Position_list* pos_list = new Position_list(nullptr, nullptr);
 
    
     //Copy current pos
-    memcpy(pos_list.curr_pos, &pos, sizeof(pos));
+    memcpy(pos_list->curr_pos, &pos, sizeof(pos));
     get_legal_moves(&pos);
 
     for (uint16_t* move = move_list.start(); move < move_list.end(); move++) {
         parse_move(*move);
         make_move(&pos, *move);
-        uint64_t part = search(depth - 1, &pos_list);
+        uint64_t part = search(depth - 1, pos_list);
         cout << part << endl;
         num_positions += part;
         //TODO: print the move and how many positions are reached
-        undo_move(pos_list.curr_pos);
+        undo_move(pos_list->curr_pos);
     }
     //TODO: print total number of positions
     cout << "Total: ";
@@ -107,6 +106,7 @@ uint64_t Engine::perft(int depth) {
 
 
 uint64_t Engine::search(int depth, Position_list* prev_list) {
+    /*
     if (depth == 0)
         return 1;
     uint64_t num_positions = 0;
@@ -115,7 +115,7 @@ uint64_t Engine::search(int depth, Position_list* prev_list) {
     //Copy current pos
     memcpy(pos_list.curr_pos, &pos, sizeof(pos));
     Move_list move_list;
-    move_list.init();
+    move_list.clear();
     //Get moves for current position
     get_all_moves(&move_list, &pos);
     int size =move_list.size();
@@ -125,7 +125,8 @@ uint64_t Engine::search(int depth, Position_list* prev_list) {
         num_positions += search(depth - 1, &pos_list);
         undo_move(pos_list.curr_pos);
     }
-    return num_positions;
+    return num_positions;*/
+    return 0;
 }
 
 

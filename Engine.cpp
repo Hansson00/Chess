@@ -1,4 +1,5 @@
 #include "Engine.h"
+using namespace std;
 
 Engine::Engine() {
     fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
@@ -10,16 +11,30 @@ Engine::~Engine() {
 
 
 //Generates all legal move in current game state, and stores them in provided Move_list
-void Engine::get_legal_moves(Move_list* move_list) {
-    generate_king_moves(move_list, &pos);
-    generate_pawn_moves(move_list, &pos);
-    generate_knight_moves(move_list, &pos);
-    generate_bishop_moves(move_list, &pos);
-    generate_rook_moves(move_list, &pos);
-    generate_queen_moves(move_list, &pos);
+void Engine::get_legal_moves() {
+    move_list.init();
+    generate_king_moves(&move_list, &pos);
+    generate_pawn_moves(&move_list, &pos);
+    generate_knight_moves(&move_list, &pos);
+    generate_bishop_moves(&move_list, &pos);
+    generate_rook_moves(&move_list, &pos);
+    generate_queen_moves(&move_list, &pos);
 
     if (pos.pinnedPieces != 0) { //Filter out pinned moves
-        filter_pins(move_list, &pos);
+        filter_pins(&move_list, &pos);
+    }
+}
+
+void Engine::get_all_moves(Move_list* m_l, Position* p) {
+    generate_king_moves(m_l, p);
+    generate_pawn_moves(m_l, p);
+    generate_knight_moves(m_l, p);
+    generate_bishop_moves(m_l, p);
+    generate_rook_moves(m_l, p);
+    generate_queen_moves(m_l, p);
+
+    if (pos.pinnedPieces != 0) { //Filter out pinned moves
+        filter_pins(m_l, p);
     }
 }
 
@@ -58,6 +73,64 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
         moves++;
     }
     return result;
+}
+
+//THIS IS SOME SHIT CODE
+uint64_t Engine::perft(int depth) {
+    uint64_t num_positions = 0;
+    Position_list pos_list = new Position_list(nullptr);
+    pos_list.curr_pos = new Position;
+
+   
+    //Copy current pos
+    memcpy(pos_list.curr_pos, &pos, sizeof(pos));
+    get_legal_moves();
+
+    for (uint16_t* move = move_list.start(); move < move_list.end(); move++) {
+        parse_move(*move);
+        make_move(&pos, *move);
+        uint64_t part = search(depth - 1, &pos_list);
+        cout << part << endl;
+        num_positions += part;
+        //TODO: print the move and how many positions are reached
+        undo_move(pos_list.curr_pos);
+    }
+    //TODO: print total number of positions
+    cout << "Total: ";
+    cout << num_positions << endl;
+    return num_positions;
+}
+
+
+uint64_t Engine::search(int depth, Position_list* prev_list) {
+    if (depth == 0)
+        return 1;
+    uint64_t num_positions = 0;
+    Position_list pos_list = new Position_list(prev_list);
+    pos_list.curr_pos = new Position;
+    //Copy current pos
+    memcpy(pos_list.curr_pos, &pos, sizeof(pos));
+    Move_list move_list;
+    move_list.init();
+    //Get moves for current position
+    get_all_moves(&move_list, &pos);
+    int size =move_list.size();
+
+    for (uint16_t* move = move_list.move_list; move < move_list.end(); move++) {
+        make_move(&pos, *move);
+        num_positions += search(depth - 1, &pos_list);
+        undo_move(pos_list.curr_pos);
+    }
+    return num_positions;
+}
+
+
+void Engine::parse_move(uint16_t move) {
+    int from = (move >> 6) & 0x3F;
+    int to = move & 0x3F;
+    std::string parse = { (char)(from % 8 + 'a'), (char)('8' - from / 8),
+        (char)('a' + to % 8), (char)('8' - to / 8), ':' };
+    cout << parse;
 }
 
 ////NOT FINISHED
@@ -109,8 +182,18 @@ void Engine::make_move(Position* pos, uint16_t move) {
         pieceID = piece_offset + 2 + (flags & 0x3); //Change which bitboard should get the set bit
     }
 
-    //King and rook moves disable castling
-    const uint8_t castling = pos->castlingRights;
+    //Rook moves disable castling rights
+    if (pieceID - piece_offset == 4) {
+        const int shift = white_to_move ? 0 : 2;
+        //If the from square is on the 7th file, i.e. king castling
+        const int set = ((move >> 6) & 0b111) == 7 ? 0b10 << shift : 0b01 << shift;
+        pos->castlingRights &= set;
+    }
+    //King moves disable castling rights
+    else if (pieceID - piece_offset == 0) {
+        const int set = piece_offset == 0 ? 0b1100 : 0b0011;
+        pos->castlingRights &= set;
+    }
 
 
     //Move the piece in all bitboards
@@ -124,6 +207,9 @@ void Engine::make_move(Position* pos, uint16_t move) {
     update_attack(pos);
 }
 
+void Engine::undo_move(Position* prev_pos){
+    memcpy(&pos, prev_pos, sizeof(pos));
+}
 
 
 void Engine::update_attack(Position* pos) {
@@ -164,9 +250,10 @@ void Engine::update_attack(Position* pos) {
         }
     }
     find_pins(pos);
-    
-
-
+    //Checkmate, this will not be necessary during perft
+    get_legal_moves();
+    if (move_list.size() == 0)
+        sound = s_checkmate;
 
 }
 

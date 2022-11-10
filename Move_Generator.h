@@ -26,18 +26,23 @@ public:
 		uint16_t size() { return end() - start(); }
 		
 		uint16_t contains(const uint16_t move) {
+			uint16_t xd = size();
 			for (uint16_t* i = start(); i < end(); i++) {
 				if ((*i & 0xFFF) == move)
 					return *i; //Return the move with its flags
 			}
 			return 0; //Move not found
 		}
+		void init() {
+			memset(move_list, 0, 60 * sizeof(uint16_t));
+			last = move_list;
+		}
 		void add_move(const uint16_t move) { *last++ = move; }
 		uint16_t to_sq(const uint16_t move) const { return move & 0x3F; }
 		uint16_t from_sq(const uint16_t move) const { return (move >> 6) & 0x3F; }
 		uint16_t flags(const uint16_t move) const { return move >> 12; }
 		uint16_t move_list[60];
-		uint16_t* last; //60 should be enough space for all moves
+		uint16_t* last = move_list; //60 should be enough space for all moves
 	};
 
 	//Functions to generate each kind of piece moves

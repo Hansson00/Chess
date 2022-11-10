@@ -32,6 +32,9 @@ void Chess::events() {
         case SDL_QUIT:
             running = false;
             break;
+        case SDLK_SPACE:
+            //engine->undo_move();
+            break;
         default:
             break;
         }
@@ -63,6 +66,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         uint64_t mouse_pos = 1Ull << (x + y * 8);
 
         if (mouse_down && x < 8 && y < 8) { // Pick up piece
+            uint64_t sum = engine->perft(3);
 
             for (int i = 0; i < 12; i++)
                 if ((mouse_pos & engine->pos.pieceBoards[i]) != 0) {
@@ -74,12 +78,9 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
         }
         else { // Place piece
             if (x < 8 && y < 8 && held_piece != 255) { // Check if this legal is as well
-                Move_Generator::Move_list move_list;
-                memset(move_list.move_list, 0, 60 * sizeof(uint16_t));
-                move_list.last = move_list.move_list;
-                engine->get_legal_moves(&move_list);
-                const uint16_t move = (uint16_t)(tmp | long_bit_scan(held_piece_board) << 6);
-                const uint16_t real_move = move_list.contains(move);
+                engine->get_legal_moves();
+                const uint16_t mouse_move = (uint16_t)(tmp | long_bit_scan(held_piece_board) << 6);
+                const uint16_t real_move = engine->move_list.contains(mouse_move);
                 if (real_move != 0) {
                     engine->make_move(&(engine->pos), real_move);
                     switch (engine->sound) {
@@ -87,6 +88,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     case Engine::s_capture: sound_manager->play_sound(sound_manager->capture); break;
                     case Engine::s_castle: sound_manager->play_sound(sound_manager->castle); break;
                     case Engine::s_check: sound_manager->play_sound(sound_manager->check); break;
+                    case Engine::s_checkmate: sound_manager->play_sound(sound_manager->checkmate); break;
                     }
                 }
                 

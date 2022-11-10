@@ -12,6 +12,9 @@ public:
 	~Engine();
 
 	Position pos;
+	Move_list move_list;
+	
+
 	enum Sound {
 		s_move,
 		s_capture,
@@ -22,15 +25,29 @@ public:
 	Sound sound;
 
 	uint64_t move_squares(uint16_t* moves, uint16_t* end);
-	void get_legal_moves(Move_list* move_list);
+	void get_legal_moves();
 	uint64_t generate_held_piece_moves(uint16_t p, Position* pos, uint64_t mask);
 	
 	void make_move(Position* pos, uint16_t move);
+	void undo_move(Position* prev_pos);
 	void update_attack(Position* pos);
+	void get_all_moves(Move_list* m_l, Position* p);
+
+
+	struct Position_list {
+		Position_list* prev_positions;
+		Position* curr_pos;
+		Position_list(Position_list* _prev) : prev_positions(_prev), curr_pos(nullptr) {};
+	};
+	uint64_t perft(int depth);
+	uint64_t search(int depth, Position_list* p_list);
+	void parse_move(uint16_t move);
 	
 
 
 private:
+
+
 	void in_check_masks(Position* pos, bool white_in_check);
 	void en_passant(Position* pos, int pushedPawn);
 	uint64_t find_block(uint32_t king, uint32_t checker);

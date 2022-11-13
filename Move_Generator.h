@@ -28,7 +28,7 @@ public:
 	void generate_sliding_moves(Move_list* move_list, uint64_t board, uint64_t moves, uint32_t piece);
 
 protected:
-	void add_promotion(Move_list* move_list, uint16_t move);
+	void add_promotion(Move_list* move_list, uint32_t move);
 	const uint64_t shift_up(uint64_t pawns, bool white);
 	const uint64_t shift_side(uint64_t pawns, bool right, bool white);
 	uint64_t piece_attacks(uint64_t board, uint64_t pieces, int piece_pos);

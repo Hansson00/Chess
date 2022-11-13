@@ -34,13 +34,12 @@ void print_bit_board(uint64_t b);
 
 //Wrapper to easily keep track of the move_list and some useful functions
 struct Move_list {
-	uint16_t* start() { return move_list; };
-	uint16_t* end() { return last; };
-	uint16_t size() { return end() - start(); }
+	uint32_t* start() { return move_list; };
+	uint32_t* end() { return last; };
+	uint32_t size() { return end() - start(); }
 
-	uint16_t contains(const uint16_t move) {
-		uint16_t xd = size();
-		for (uint16_t* i = start(); i < end(); i++) {
+	uint32_t contains(const uint32_t move) {
+		for (uint32_t* i = start(); i < end(); i++) {
 			if ((*i & 0xFFF) == move)
 				return *i; //Return the move with its flags
 		}
@@ -50,12 +49,13 @@ struct Move_list {
 		//delete(move_list);
 	}
 	void clear() {last = move_list;}
-	void add_move(const uint16_t move) { *last++ = move; }
-	uint16_t to_sq(const uint16_t move) const { return move & 0x3F; }
-	uint16_t from_sq(const uint16_t move) const { return (move >> 6) & 0x3F; }
-	uint16_t flags(const uint16_t move) const { return move >> 12; }
-	uint16_t move_list[60];
-	uint16_t* last = move_list; //60 should be enough space for all moves
+	void add_move(const uint32_t move) { *last++ = move; }
+	uint32_t to_sq(const uint32_t move) const { return move & 0x3F; }
+	uint32_t from_sq(const uint32_t move) const { return (move >> 6) & 0x3F; }
+	uint32_t flags(const uint32_t move) const { return (move >> 12) & 0xF; }
+	uint32_t piece_index(const uint32_t move) const { return move >> 16; }
+	uint32_t move_list[60];
+	uint32_t* last = move_list; //60 should be enough space for all moves
 };
 
 struct Position_list {

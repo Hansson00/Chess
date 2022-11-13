@@ -28,7 +28,7 @@ public:
 	void get_legal_moves(Position * pos, Move_list* move_list);
 	uint64_t generate_held_piece_moves(uint16_t p, Position* pos, uint64_t mask);
 	
-	void make_move(Position* pos, uint16_t move);
+	void make_move(Position* pos, uint32_t move);
 	void undo_move(Position_list* pos_list, Position* current);
 	void update_attack(Position* pos);
 

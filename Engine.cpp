@@ -182,8 +182,8 @@ void Engine::make_move(Position* pos, uint32_t move) {
     static uint64_t wking_corner = 1ULL << 63;
     static uint64_t wqueen_corner = 1ULL << 56;
     
-    const uint64_t rooks = pos->pieceBoards[piece_offset + 4];
-    if (white_to_move) {
+    const uint64_t rooks = pos->pieceBoards[them_offset + 4];
+    if (!white_to_move) {
         if ((rooks & wking_corner) == 0) {
             pos->castlingRights &= 0b1110;
         }

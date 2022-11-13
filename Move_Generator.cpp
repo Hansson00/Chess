@@ -94,12 +94,12 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 		}
 		while (promoCapLeft != 0) {
 			int dest = long_bit_scan(promoCapLeft);
-			add_promotion(move_list, (uint32_t)(piece_id | dest | (dest + back_left) << 6 | 0xC000));
+			add_promotion(move_list, (uint32_t)(piece_id | dest | (dest + back_right) << 6 | 0xC000));
 			promoCapLeft &= promoCapLeft - 1;
 		}
 		while (promoCapRight != 0) {
 			int dest = long_bit_scan(promoCapRight);
-			add_promotion(move_list, (uint32_t)(piece_id | dest | (dest + back_right) << 6 | 0xC000));
+			add_promotion(move_list, (uint32_t)(piece_id | dest | (dest + back_left) << 6 | 0xC000));
 			promoCapRight &= promoCapRight - 1;
 		}
 	}

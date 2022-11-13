@@ -38,6 +38,17 @@ void Chess::events() {
         case SDL_MOUSEBUTTONUP:
             mouse_event(sdl_event.button.button, false);
             break;
+
+        case SDL_KEYUP:
+            switch (sdl_event.key.keysym.sym) {
+            case SDLK_SPACE:
+                engine->player_undo_move();
+                break;
+            default:
+                break;
+            }
+            break;
+
         case SDL_QUIT:
             running = false;
             break;
@@ -87,7 +98,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 const uint32_t mouse_move = (uint32_t)(tmp | long_bit_scan(held_piece_board) << 6);
                 const uint32_t real_move = move_list.contains(mouse_move);
                 if (real_move != 0) {
-                    engine->make_move(&(engine->pos), real_move);
+                    engine->player_make_move(real_move);
                     switch (engine->sound){
                     case Engine::s_move: sound_manager->play_sound(sound_manager->move); break;
                     case Engine::s_capture: sound_manager->play_sound(sound_manager->capture); break;

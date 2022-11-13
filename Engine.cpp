@@ -264,6 +264,21 @@ void Engine::update_attack(Position* pos) {
 
 }
 
+void Engine::player_make_move(const uint16_t move) {
+    make_move(&pos, move);
+    p_list = new Position_list(p_list, &pos);
+    pos = p_list->curr_pos;
+}
+
+void Engine::player_undo_move() {
+    if (p_list->prev_positions != nullptr) {
+        Position_list* tmp = p_list;
+        p_list = p_list->prev_positions;
+        pos = p_list->curr_pos;
+        delete(tmp);
+    }
+}
+
 
 //Filter out pinned pieces illeagal moves
 void Engine::filter_pins(Move_list* move_list, Position* pos) {
@@ -525,6 +540,7 @@ void Engine::fenInit(Position* pos, std::string fen) {
     pos->teamBoards[0] = pos->teamBoards[1] | pos->teamBoards[2];
     pos->enPassant = 0xFF;
     Engine::update_attack(pos);
+    p_list = new Position_list(nullptr, pos);
 }
 
 

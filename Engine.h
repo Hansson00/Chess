@@ -13,7 +13,7 @@ public:
 
 	Position pos;
 	Move_list move_list;
-	
+	Position_list* p_list;
 
 	enum Sound {
 		s_move,
@@ -31,6 +31,9 @@ public:
 	void make_move(Position* pos, uint32_t move);
 	void undo_move(Position_list* pos_list, Position* current);
 	void update_attack(Position* pos);
+	
+	void player_make_move(const uint16_t move);
+	void player_undo_move();
 
 	void perft(int depth, Position* pos);
 	uint64_t search(int depth, Position_list* p_list);

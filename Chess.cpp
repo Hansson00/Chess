@@ -139,12 +139,15 @@ void Chess::chagne_bitboards(uint32_t p, uint64_t add, uint64_t remove) {
 }
 
 void Chess::command_promt() {
-    /*
-    static std::string str;
-    char ch = (char)std::cin.get();
-    
-    
-    if (ch == '\n') {
+
+ ;
+    static bool bl = false;
+    static std::future<std::string> future = std::async(get_input, &bl);
+
+    if (bl) {
+        std::string str = future.get();
+        bl = false;
+       
         auto start = std::chrono::system_clock::now();
         if (std::strcmp(str.c_str(), "perft 1") == 0) { engine->perft(1, &engine->pos); }
         else if (std::strcmp(str.c_str(), "perft 2") == 0) { engine->perft(2, &engine->pos); }
@@ -157,8 +160,13 @@ void Chess::command_promt() {
         std::chrono::duration<double> diff = end - start;
         std::cout << "Time:" << diff.count() << std::endl;
 
-        str = "";
+        future = std::async(get_input, &bl);
     }
-    else {str += ch;}
-    */
+}
+
+static std::string get_input(bool* bl) {
+    std::string answer;
+    std::getline(std::cin, answer);
+    *bl = true;
+    return answer;
 }

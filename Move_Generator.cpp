@@ -77,7 +77,7 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 		uint64_t attackers = pawn_attacks(epPos, !white_to_move) & non_promoting; //ranks is redundant I think
 		while (attackers != 0) {
 			int pawn = long_bit_scan(attackers);
-			uint16_t move = (uint32_t)(piece_id | pseudo | pawn << 6 | 0x5000); //0x5000 flag for ep capture
+			uint32_t move = (uint32_t)(piece_id | pseudo | pawn << 6 | 0x5000); //0x5000 flag for ep capture
 			move_list->add_move(move);
 			attackers &= attackers - 1;
 		}

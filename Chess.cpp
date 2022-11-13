@@ -140,7 +140,6 @@ void Chess::chagne_bitboards(uint32_t p, uint64_t add, uint64_t remove) {
 
 void Chess::command_promt() {
 
- ;
     static bool bl = false;
     static std::future<std::string> future = std::async(get_input, &bl);
 

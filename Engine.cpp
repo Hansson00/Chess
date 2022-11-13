@@ -3,8 +3,8 @@ using namespace std;
 
 Engine::Engine() {
 
-    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
-    fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    //fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
 }
 
 Engine::~Engine() {
@@ -144,13 +144,21 @@ void Engine::make_move(Position* pos, uint32_t move) {
     pos->pieceBoards[pieceID] &= ~from_sq;
    
     if (flags == 5) { //En passant capture
+        uint32_t xd = pos->enPassant >> 8;
         uint64_t realPawn = ~(1ULL << (pos->enPassant >> 8));
         pos->pieceBoards[them_offset + 1] &= realPawn; //Remove real pawn
         pos->teamBoards[enemy] &= realPawn;
         pos->teamBoards[0] &= realPawn;
         sound = s_capture;
     }
-    else if (flags == 1) { //Double push
+    else if ((flags & 4) == 4) { //Regular capture
+        int capID = pos->find_mask(to_sq, them_offset + 1, them_offset + 6);
+        //TODO: If rook gets captured change castling rights
+        pos->pieceBoards[capID] &= ~to_sq;
+        pos->teamBoards[enemy] &= ~to_sq;
+        sound = s_capture;
+    }
+    if (flags == 1) { //Double push
         en_passant(pos, move & 0x3F);
     }
     else {
@@ -162,27 +170,38 @@ void Engine::make_move(Position* pos, uint32_t move) {
         castle(pos, ~rook, to); //Clear rook and move to "to" square
         sound = s_castle;
     }
-    else if ((flags & 4) == 4) { //Regular capture
-        int capID = pos->find_mask(to_sq, them_offset + 1, them_offset + 6);
-        //TODO: If rook gets captured change castling rights
-        pos->pieceBoards[capID] &= ~to_sq;
-        pos->teamBoards[enemy] &= ~to_sq;
-        sound = s_capture;
-        //TODO: store either captured piece or save entire gamestate
-    }
+    
     if (flags > 7) { //Promotion
         pieceID = piece_offset + 2 + (flags & 0x3); //Change which bitboard should get the set bit
     }
 
-    //Rook moves disable castling rights
-    if (pieceID - piece_offset == 4) {
-        const int shift = white_to_move ? 0 : 2;
-        //If the from square is on the 7th file, i.e. king castling
-        const int set = ((move >> 6) & 0b111) == 7 ? 0b10 << shift : 0b01 << shift;
-        pos->castlingRights &= set;
+
+    static uint64_t bking_corner = 1ULL << 7;
+    static uint64_t bqueen_corner = 1ULL;
+    static uint64_t wking_corner = 1ULL << 63;
+    static uint64_t wqueen_corner = 1ULL << 56;
+    
+    const uint64_t rooks = pos->pieceBoards[piece_offset + 4];
+    if (white_to_move) {
+        if ((rooks & wking_corner) == 0) {
+            pos->castlingRights &= 0b1110;
+        }
+        if ((rooks & wqueen_corner) == 0) {
+            pos->castlingRights &= 0b1101;
+        }
     }
+    else {
+        if ((rooks & bking_corner) == 0) {
+            pos->castlingRights &= 0b1011;
+        }
+        if ((rooks & bqueen_corner) == 0) {
+            pos->castlingRights &= 0b0111;
+        }
+    }
+    
+
     //King moves disable castling rights
-    else if (pieceID - piece_offset == 0) {
+    if (pieceID - piece_offset == 0) {
         const int set = piece_offset == 0 ? 0b1100 : 0b0011;
         pos->castlingRights &= set;
     }

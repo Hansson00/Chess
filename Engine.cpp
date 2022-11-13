@@ -69,6 +69,8 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
 
 //THIS IS SOME SHIT CODE
 void Engine::perft(int depth, Position* pos) {
+
+    perft_out = "";
     uint64_t num_positions = 0;
     Position prev = *pos;
     Position_list pos_list = Position_list(nullptr, pos);
@@ -85,11 +87,20 @@ void Engine::perft(int depth, Position* pos) {
 
         //Print how many positions are reached after the move
         cout << part << endl;
+
+        perft_out += std::to_string(part)+ "\n";
+
         num_positions += part;
         undo_move(&pos_list, &prev);
     }
     cout << "Total: ";
     cout << num_positions << endl;
+    perft_out.pop_back();
+    std::ofstream outfile("ours.txt");
+
+    outfile << perft_out;
+
+    outfile.close();
 }
 
 
@@ -124,6 +135,14 @@ void Engine::parse_move(uint16_t move) {
     int to = move & 0x3F;
     cout << (char)(from % 8 + 'a') << (char)('8' - from / 8) 
         << (char)('a' + to % 8) << (char)('8' - to / 8) << ": ";
+    
+    perft_out += (char)(from % 8 + 'a');
+    perft_out += (char)('8' - from / 8);
+    perft_out += (char)('a' + to % 8);
+    perft_out += (char)('8' - to / 8);
+    perft_out += ": ";
+
+
 }
 
 ////NOT FINISHED

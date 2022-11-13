@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include "Chess_utility.h"
 #include "Move_Generator.h"
+#include "fstream"
 
 
 class Engine : private Move_Generator {
@@ -14,6 +15,8 @@ public:
 	Position pos;
 	Move_list move_list;
 	Position_list* p_list;
+
+	std::string perft_out = "";
 
 	enum Sound {
 		s_move,

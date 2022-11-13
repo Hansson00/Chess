@@ -49,7 +49,7 @@ struct Move_list {
 	~Move_list() {
 		//delete(move_list);
 	}
-	void clear() {last = move_list;}
+	void clear() { last = move_list; }
 	void add_move(const uint16_t move) { *last++ = move; }
 	uint16_t to_sq(const uint16_t move) const { return move & 0x3F; }
 	uint16_t from_sq(const uint16_t move) const { return (move >> 6) & 0x3F; }
@@ -59,9 +59,9 @@ struct Move_list {
 };
 
 struct Position_list {
-	Position_list* prev_positions;
 	Position curr_pos;
-	Position_list(Position_list* _prev, Position* _curr_pos){
+	Position_list* prev_positions;
+	Position_list(Position_list* _prev, Position* _curr_pos) {
 		prev_positions = _prev;
 		curr_pos = *_curr_pos;
 	};

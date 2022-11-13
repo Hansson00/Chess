@@ -25,6 +25,8 @@ private:
 	Window* window;
 	Engine* engine;
 
+
+
 	void events();
 	void draw();
 	void command_promt();

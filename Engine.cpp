@@ -395,6 +395,7 @@ void Engine::in_check_masks(Position* pos, bool white_in_check) {
 
 void Engine::en_passant(Position* pos, int pushedPawn) {
     //White double push
+    pos->enPassant = 0xFF;
     if (pos->whiteToMove) {
         //If no black pawns present on 5th rank then no en passant possible
         if ((pos->pieceBoards[7] & 0xFF00000000L) == 0)

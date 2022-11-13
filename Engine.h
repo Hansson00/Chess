@@ -32,7 +32,7 @@ public:
 	void undo_move(Position_list* pos_list, Position* current);
 	void update_attack(Position* pos);
 	
-	void player_make_move(const uint16_t move);
+	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
 	void perft(int depth, Position* pos);

@@ -264,7 +264,7 @@ void Engine::update_attack(Position* pos) {
 
 }
 
-void Engine::player_make_move(const uint16_t move) {
+void Engine::player_make_move(const uint32_t move) {
     make_move(&pos, move);
     p_list = new Position_list(p_list, &pos);
     pos = p_list->curr_pos;

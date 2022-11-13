@@ -3,8 +3,9 @@ using namespace std;
 
 Engine::Engine() {
 
-    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
     //fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit(&pos, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq");
 }
 
 Engine::~Engine() {
@@ -122,7 +123,7 @@ void Engine::parse_move(uint16_t move) {
     int from = (move >> 6) & 0x3F;
     int to = move & 0x3F;
     cout << (char)(from % 8 + 'a') << (char)('8' - from / 8) 
-        << (char)('a' + to % 8) << (char)('8' - to / 8) << ':';
+        << (char)('a' + to % 8) << (char)('8' - to / 8) << ": ";
 }
 
 ////NOT FINISHED
@@ -279,10 +280,12 @@ void Engine::player_undo_move() {
     }
 }
 
+    
+
 
 //Filter out pinned pieces illeagal moves
 void Engine::filter_pins(Move_list* move_list, Position* pos) {
-    uint32_t filtered_moves[60];
+    uint32_t filtered_moves[100];
     const uint64_t pinned = pos->pinnedPieces;
     const int king_pos = pos->whiteToMove ? long_bit_scan(pos->pieceBoards[0]) : long_bit_scan(pos->pieceBoards[6]);
 

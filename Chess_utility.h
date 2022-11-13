@@ -53,7 +53,7 @@ struct Move_list {
 	uint16_t to_sq(const uint32_t move) const { return move & 0x3F; }
 	uint16_t from_sq(const uint32_t move) const { return (move >> 6) & 0x3F; }
 	uint16_t flags(const uint32_t move) const { return move >> 12; }
-	uint32_t move_list[60];
+	uint32_t move_list[100];
 	uint32_t* last = move_list; //60 should be enough space for all moves
 };
 

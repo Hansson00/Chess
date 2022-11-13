@@ -4,7 +4,7 @@
 #include "iostream"
 #include "string"
 
-#define WIDTH 25
+#define E_WIDTH 25
 
 class Eval_Bar {
 public:
@@ -15,7 +15,7 @@ public:
 	SDL_Rect bar_rect;
 
 private:
-	uint16_t width = WIDTH;
+	uint16_t width = E_WIDTH;
 	uint16_t height = 0;
 
 

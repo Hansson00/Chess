@@ -6,10 +6,6 @@
 #include <thread>
 
 
-void* operator new(size_t size){
-    return malloc(size);
-}
-
 Chess::Chess(Uint16 width, uint16_t height) {
     SDL_Init(SDL_INIT_EVERYTHING);
     window = new Window(width, height);

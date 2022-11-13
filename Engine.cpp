@@ -15,8 +15,9 @@ Engine::~Engine() {
 
 //Generates all legal move in current game state, and stores them in provided Move_list
 void Engine::get_legal_moves(Position* pos, Move_list* move_list) {
-
     generate_king_moves(move_list, pos);
+    if (pos->numCheckers > 1) //Only king moves are legal
+        return;
     generate_pawn_moves(move_list, pos);
     generate_knight_moves(move_list, pos);
     generate_bishop_moves(move_list, pos);
@@ -34,19 +35,19 @@ void Engine::get_legal_moves(Position* pos, Move_list* move_list) {
 uint64_t Engine::generate_held_piece_moves(uint16_t p_type, Position* pos, uint64_t mask) {
     
     Move_list move_list;
-    memset(move_list.move_list, 0, 60*sizeof(uint16_t));
-    move_list.last = move_list.move_list;
     (this->*arr[p_type % 6])(&move_list, pos);
     if (pos->pinnedPieces != 0) {
         filter_pins(&move_list, pos);
     }
     uint64_t result = 0ULL;
     
-    uint16_t piece_pos = long_bit_scan(mask);
-    uint16_t* start = move_list.start();
-    const uint16_t* end = move_list.end();
+    uint32_t piece_pos = long_bit_scan(mask);
+    uint32_t* start = move_list.start();
+    const uint32_t* end = move_list.end();
+    uint32_t xd = *start >> 16;
+    int xd2 = *(start + 1) >> 16;
     while (start < end) {
-        uint16_t from = move_list.from_sq(*start);
+        uint32_t from = move_list.from_sq(*start);
         if (from == piece_pos)
             result |= 1ULL << move_list.to_sq(*start);
         start++;
@@ -74,7 +75,7 @@ void Engine::perft(int depth, Position* pos) {
     Move_list legal_moves;
     get_legal_moves(pos, &legal_moves);
 
-    for (uint16_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
+    for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
         //Print the move being made
         parse_move(*move);
         make_move(&pos_list.curr_pos, *move);
@@ -108,7 +109,7 @@ uint64_t Engine::search(int depth, Position_list* prev_list) {
     if (depth == 1)
         return (uint64_t)legal_moves.size();
 
-    for (uint16_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
+    for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
         make_move(&pos_list.curr_pos, *move);
         num_positions += search(depth - 1, &pos_list);
         undo_move(&pos_list, &prev);
@@ -126,20 +127,20 @@ void Engine::parse_move(uint16_t move) {
 
 ////NOT FINISHED
 //Use this to replace function in window moving the pieces
-void Engine::make_move(Position* pos, uint16_t move) {
+void Engine::make_move(Position* pos, uint32_t move) {
     sound = s_move;
     const bool white_to_move = pos->whiteToMove;
     const uint16_t piece_offset = white_to_move ? 0 : 6;
     const uint16_t them_offset = white_to_move ? 6 : 0;
     const uint64_t from_sq = 1ULL << ((move >> 6) & 0x3F);
     const uint64_t to_sq = 1ULL << (move & 0x3F);
-    const uint16_t flags = move >> 12;
+    const uint16_t flags = (move >> 12) & 0xF;
     const int team = 1 + piece_offset / 6;
     const int enemy = team ^ 3; //enemy = team == 1 ? 2 : 1;
     
     
     //TODO: Find better way to know which piece made the move, maybe save as flag in move itself
-    int pieceID = pos->find_mask(from_sq, piece_offset, piece_offset + 6);
+    uint32_t pieceID = move >> 16;
     pos->pieceBoards[pieceID] &= ~from_sq;
    
     if (flags == 5) { //En passant capture
@@ -206,7 +207,7 @@ void Engine::undo_move(Position_list* pos_list, Position* current){
 void Engine::update_attack(Position* pos) {
     pos->numCheckers = 0;
     pos->pinnedPieces = 0ULL;
-    pos->checker = 0;
+    pos->checker = ~0ULL;
     pos->block_check = 0;
     if (pos->whiteToMove){ //Only need to update black attack
         uint64_t black_attack = 0ULL;
@@ -262,7 +263,7 @@ void Engine::player_undo_move() {
 
 //Filter out pinned pieces illeagal moves
 void Engine::filter_pins(Move_list* move_list, Position* pos) {
-    uint16_t filtered_moves[60];
+    uint32_t filtered_moves[60];
     const uint64_t pinned = pos->pinnedPieces;
     const int king_pos = pos->whiteToMove ? long_bit_scan(pos->pieceBoards[0]) : long_bit_scan(pos->pieceBoards[6]);
 
@@ -282,7 +283,7 @@ void Engine::filter_pins(Move_list* move_list, Position* pos) {
         }
     }
     //Copy back the filtered moves to the move_list and update last
-    memcpy(move_list->move_list, filtered_moves, filter_size * sizeof(uint16_t));
+    memcpy(move_list->move_list, filtered_moves, filter_size * sizeof(uint32_t));
     move_list->last = move_list->move_list + filter_size;
 }
 
@@ -348,7 +349,7 @@ void Engine::in_check_masks(Position* pos, bool white_in_check) {
         pos->numCheckers++;
     }
     pos->block_check = block;
-    pos->checker = checker;
+    pos->checker = checker == 0 ? ~0ULL : checker;
 }
 
 void Engine::en_passant(Position* pos, int pushedPawn) {

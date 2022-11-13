@@ -30,8 +30,10 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 	const uint64_t opponent = white_to_move ? pos -> teamBoards[2] : pos->teamBoards[1];
 	const uint64_t non_occupied = ~(pos->teamBoards[0]);
 	const uint64_t start_pawns = white_to_move ? ranks[5] : ranks[2]; //Where pawns that are able to move twice will be after one push
+	const uint64_t checker = pos->checker;
 	const uint64_t block = pos->numCheckers > 0 ? pos->block_check : ~0ULL;
-	const uint64_t checker = pos->numCheckers > 0 ? pos->checker : ~0ULL;
+	const uint32_t piece_id = white_to_move ? 1ULL << 16 : 7ULL << 16;
+	
 
 	uint64_t push = shift_up(non_promoting, white_to_move) & non_occupied;
 	uint64_t double_push = shift_up(push & start_pawns, white_to_move) & non_occupied & block;
@@ -40,13 +42,13 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 	const int back = white_to_move ? 8 : -8;
 	while (push) {
 		uint32_t dest = long_bit_scan(push);
-		move_list->add_move((uint16_t)(dest | (dest + back) << 6));
+		move_list->add_move((uint32_t)(piece_id | dest | (dest + back) << 6));
 		push &= push - 1;
 	}
 
 	while (double_push) {
 		uint32_t dest = long_bit_scan(double_push);
-		move_list->add_move((uint16_t)(dest | (dest + back + back) << 6 | 0x1000)); //0x1000 flag for double push
+		move_list->add_move((uint32_t)(piece_id | dest | (dest + back + back) << 6 | 0x1000)); //0x1000 flag for double push
 		double_push &= double_push - 1;
 	}
 
@@ -57,57 +59,57 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 
 	while (pawn_left) {
 		uint32_t dest = long_bit_scan(pawn_left);
-		move_list->add_move((uint16_t)(dest | (dest + back_right) << 6 | 0x4000)); //0x4000 flag for capture
+		move_list->add_move((uint32_t)(piece_id | dest | (dest + back_right) << 6 | 0x4000)); //0x4000 flag for capture
 		pawn_left &= pawn_left - 1;
 	}
 
 	while (pawn_right) {
 		uint32_t dest = long_bit_scan(pawn_right);
-		move_list->add_move((uint16_t)(dest | (dest + back_left) << 6 | 0x4000)); //0x4000 flag for capture
+		move_list->add_move((uint32_t)(piece_id | dest | (dest + back_left) << 6 | 0x4000)); //0x4000 flag for capture
 		pawn_right &= pawn_right - 1;
 	}
 	
 	
-	if (pos->enPassant != 0xFF && block == ~0) {
+	if (pos->enPassant != 0xFF && (block == ~0ULL || block == 0)) {
 		const int pseudo = pos->enPassant & 0xFF;
 		uint64_t epPos = (1ULL << pseudo);
 		//Reverse pawnAttack gives potential attackers of the ep square
 		uint64_t attackers = pawn_attacks(epPos, !white_to_move) & non_promoting; //ranks is redundant I think
 		while (attackers != 0) {
 			int pawn = long_bit_scan(attackers);
-			uint16_t move = (uint16_t)(pseudo | pawn << 6 | 0x5000); //0x5000 flag for ep capture
+			uint16_t move = (uint32_t)(piece_id | pseudo | pawn << 6 | 0x5000); //0x5000 flag for ep capture
 			move_list->add_move(move);
 			attackers &= attackers - 1;
 		}
 	}
 
 	if (promoting != 0) {
-		uint64_t promoPush = shift_up(promoting, white_to_move) & non_occupied;
-		uint64_t promoCapLeft = shift_side(promoting & ~files[0], false, white_to_move) & opponent;
-		uint64_t promoCapRight = shift_side(promoting & ~files[7], true, white_to_move) & opponent;
+		uint64_t promoPush = shift_up(promoting, white_to_move) & non_occupied & block;
+		uint64_t promoCapLeft = shift_side(promoting & ~files[0], false, white_to_move) & opponent & checker;
+		uint64_t promoCapRight = shift_side(promoting & ~files[7], true, white_to_move) & opponent & checker;
 		while (promoPush != 0) {
 			int dest = long_bit_scan(promoPush);
-			add_promotion(move_list, (uint16_t)(dest | (dest + back) << 6 | 0x8000));
+			add_promotion(move_list, (uint32_t)(piece_id | dest | (dest + back) << 6 | 0x8000));
 			promoPush &= promoPush - 1;
 		}
 		while (promoCapLeft != 0) {
 			int dest = long_bit_scan(promoCapLeft);
-			add_promotion(move_list, (uint16_t)(dest | (dest + back_left) << 6 | 0xC000));
+			add_promotion(move_list, (uint32_t)(piece_id | dest | (dest + back_left) << 6 | 0xC000));
 			promoCapLeft &= promoCapLeft - 1;
 		}
 		while (promoCapRight != 0) {
 			int dest = long_bit_scan(promoCapRight);
-			add_promotion(move_list, (uint16_t)(dest | (dest + back_right) << 6 | 0xC000));
+			add_promotion(move_list, (uint32_t)(piece_id | dest | (dest + back_right) << 6 | 0xC000));
 			promoCapRight &= promoCapRight - 1;
 		}
 	}
 }
 
-void Move_Generator::add_promotion(Move_list* move_list, uint16_t move) {
-	move_list->add_move((uint16_t)(move | 0x3000));
+void Move_Generator::add_promotion(Move_list* move_list, uint32_t move) {
+	move_list->add_move((uint32_t)(move | 0x3000));
 	move_list->add_move(move);
-	move_list->add_move((uint16_t)(move | 0x1000));
-	move_list->add_move((uint16_t)(move | 0x2000));
+	move_list->add_move((uint32_t)(move | 0x1000));
+	move_list->add_move((uint32_t)(move | 0x2000));
 }
 
 
@@ -115,6 +117,7 @@ void Move_Generator::generate_knight_moves(Move_list* move_list, Position* pos) 
 	const bool whiteToMove = pos->whiteToMove;
 	const uint64_t team = whiteToMove ? pos->teamBoards[1] : pos->teamBoards[2];
 	const uint64_t board = pos->teamBoards[0];
+	const uint32_t piece_id = whiteToMove ? 2ULL << 16 : 8ULL << 16;
 	uint64_t knights = whiteToMove ? pos->pieceBoards[2] : pos->pieceBoards[8];
 	
 	//Checks, maybe solving checks with a template would be nice
@@ -127,7 +130,7 @@ void Move_Generator::generate_knight_moves(Move_list* move_list, Position* pos) 
 		while (moves) {
 			uint32_t dest = long_bit_scan(moves);
 			const uint16_t cap = ((board & (1ULL << dest)) == 0) ? 0 : 0x4000; //intersection with board gives captures
-			move_list->add_move((uint16_t)(dest | knight << 6 | cap));
+			move_list->add_move((uint32_t)(piece_id | dest | knight << 6 | cap));
 			moves &= moves - 1;
 		}
 		knights &= knights - 1;
@@ -141,6 +144,7 @@ void Move_Generator::generate_king_moves(Move_list* move_list, Position* pos) {
 	const uint64_t not_attacked = white_to_move ? ~(pos->blackAttack) : ~(pos->whiteAttack);
 	const uint64_t king = white_to_move ? pos->pieceBoards[0] : pos->pieceBoards[6];
 	const uint8_t castle = white_to_move ? pos->castlingRights : (pos->castlingRights >> 2);
+	const uint32_t piece_id = white_to_move ? 0 : 6ULL << 16;
 	uint32_t k_pos = long_bit_scan(king);
 	//Castling moves
 	if (castle & 2) {
@@ -149,14 +153,14 @@ void Move_Generator::generate_king_moves(Move_list* move_list, Position* pos) {
 		const uint64_t no_piece = part | (1ULL << (k_pos - 3));
 		const bool is_ok = (board & no_piece) == 0 && (no_attack & not_attacked) == no_attack;
 		if (is_ok)
-			move_list->add_move((uint16_t)(k_pos - 2 | k_pos << 6 | 0x3000)); //queen side castle
+			move_list->add_move((uint32_t)(piece_id | k_pos - 2 | k_pos << 6 | 0x3000)); //queen side castle
 	}
 	if (castle & 1) {
 		const uint64_t no_piece = (1ULL << (k_pos + 1)) | (1ULL << (k_pos + 2));
 		const uint64_t no_attack = no_piece | (1ULL << k_pos);
 		const bool is_ok = (board & no_piece) == 0 && (no_attack & not_attacked) == no_attack;
 		if (is_ok)
-			move_list->add_move((uint16_t)(k_pos + 2 | k_pos << 6 | 0x2000)); //king side castle
+			move_list->add_move((uint32_t)(piece_id | k_pos + 2 | k_pos << 6 | 0x2000)); //king side castle
 	}
 
 	//Regular moves
@@ -164,7 +168,7 @@ void Move_Generator::generate_king_moves(Move_list* move_list, Position* pos) {
 	while (moves) {
 		uint32_t dest = long_bit_scan(moves);
 		const uint16_t cap = ((board & (1ULL << dest)) == 0) ? 0 : 0x4000; //intersection with board gives captures
-		move_list->add_move((uint16_t)(dest | k_pos << 6 | cap));
+		move_list->add_move((uint32_t)(piece_id | dest | k_pos << 6 | cap));
 		moves &= moves - 1;
 	}
 }
@@ -174,14 +178,14 @@ void Move_Generator::generate_rook_moves(Move_list* move_list, Position* pos) {
 	uint64_t pieces = white_to_move ? pos->pieceBoards[4] : pos->pieceBoards[10];
 	const uint64_t board = pos->teamBoards[0];
 	const uint64_t non_team = white_to_move ? ~(pos->teamBoards[1]) : ~(pos->teamBoards[2]);
-	
+	const uint32_t piece_id = white_to_move ? 4ULL << 10 : 10ULL << 10;
 	//Checks, maybe solving checks with a template would be nice
 	const uint64_t block = pos->numCheckers > 0 ? pos->block_check | pos->checker : ~0ULL;
 	
 	while (pieces) {
 		const uint32_t rook = long_bit_scan(pieces);
 		const uint64_t moves = rook_attacks(board, rook) & non_team & block;
-		generate_sliding_moves(move_list, board, moves, rook);
+		generate_sliding_moves(move_list, board, moves, rook | piece_id);
 		pieces &= pieces - 1;
 	}
 }
@@ -191,6 +195,7 @@ void Move_Generator::generate_bishop_moves(Move_list* move_list, Position* pos) 
 	uint64_t pieces = white_to_move ? pos->pieceBoards[3] : pos->pieceBoards[9];
 	const uint64_t board = pos->teamBoards[0];
 	const uint64_t non_team = white_to_move ? ~(pos->teamBoards[1]) : ~(pos->teamBoards[2]);
+	const uint32_t piece_id = white_to_move ? 3ULL << 10 : 9ULL << 10;
 	
 	//Checks, maybe solving checks with a template would be nice
 	const uint64_t block = pos->numCheckers > 0 ? pos->block_check | pos->checker : ~0ULL;
@@ -198,7 +203,7 @@ void Move_Generator::generate_bishop_moves(Move_list* move_list, Position* pos) 
 	while (pieces) {
 		const uint32_t bishop = long_bit_scan(pieces);
 		const uint64_t moves = bishop_attacks(board, bishop) & non_team & block;
-		generate_sliding_moves(move_list, board, moves, bishop);
+		generate_sliding_moves(move_list, board, moves, bishop | piece_id);
 		pieces &= pieces - 1;
 	}
 }
@@ -208,6 +213,7 @@ void Move_Generator::generate_queen_moves(Move_list* move_list, Position* pos) {
 	uint64_t pieces = white_to_move ? pos->pieceBoards[5] : pos->pieceBoards[11];
 	const uint64_t board = pos->teamBoards[0];
 	const uint64_t non_team = white_to_move ? ~(pos->teamBoards[1]) : ~(pos->teamBoards[2]);
+	const uint32_t piece_id = white_to_move ? 5ULL << 10 : 11ULL << 10;
 	
 	//Checks, maybe solving checks with a template would be nice
 	const uint64_t block = pos->numCheckers > 0 ? pos->block_check | pos->checker : ~0ULL;
@@ -215,17 +221,19 @@ void Move_Generator::generate_queen_moves(Move_list* move_list, Position* pos) {
 	while (pieces) {
 		const uint32_t queen = long_bit_scan(pieces);
 		const uint64_t moves = queen_attacks(board, queen) & non_team & block;
-		generate_sliding_moves(move_list, board, moves, queen);
+		generate_sliding_moves(move_list, board, moves, queen | piece_id);
 		pieces &= pieces - 1;
 	}
 }
 
 //Since sliding move generation is so similar this help method is used
 void Move_Generator::generate_sliding_moves(Move_list* move_list, uint64_t board, uint64_t moves, uint32_t piece) {
+	//Piece contains moving piece_id aswell
 	while (moves) {
 		uint32_t dest = long_bit_scan(moves);
 		const uint16_t cap = ((board & (1ULL << dest)) == 0) ? 0 : 0x4000; //intersection with board gives captures
-		move_list->add_move((uint16_t)(dest | piece << 6 | cap));
+
+		move_list->add_move((uint32_t)(dest | piece << 6 | cap));
 		moves &= moves - 1;
 	}
 }

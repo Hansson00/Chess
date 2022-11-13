@@ -2,6 +2,8 @@
 #include "Engine.h"
 #include "Move_Generator.h"
 #include "Chrono"
+#include <future>
+#include <thread>
 
 
 void* operator new(size_t size){
@@ -93,8 +95,8 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
             if (x < 8 && y < 8 && held_piece != 255) { // Check if this legal is as well
                 Move_list move_list;
                 engine->get_legal_moves(&engine->pos, &move_list);
-                const uint16_t mouse_move = (uint16_t)(tmp | long_bit_scan(held_piece_board) << 6);
-                const uint16_t real_move = move_list.contains(mouse_move);
+                const uint32_t mouse_move = (uint32_t)(tmp | long_bit_scan(held_piece_board) << 6);
+                const uint32_t real_move = move_list.contains(mouse_move);
                 if (real_move != 0) {
                     engine->player_make_move(real_move);
                     switch (engine->sound){

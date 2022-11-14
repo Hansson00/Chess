@@ -26,6 +26,21 @@ struct Position {
 	}
 };
 
+namespace std {
+	template<>
+	struct hash<Position> {
+		size_t operator()(Position* key) {
+			
+			uint64_t temp = 0;
+			for (int i = 0; i < 12; i++) {
+				temp = temp ^ key->pieceBoards[i];
+			}
+			temp = temp ^ key->castlingRights;
+			return hash<uint64_t>()(temp);
+		}
+	};
+}
+
 uint32_t bit_scan(uint32_t);
 uint32_t long_bit_scan(uint64_t);
 uint32_t high_bit_scan(int32_t i);

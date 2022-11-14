@@ -4,6 +4,9 @@
 #include "Chess_utility.h"
 #include "Move_Generator.h"
 #include "fstream"
+#include "map"
+#include "vector"
+#include "unordered_map"
 
 
 class Engine : private Move_Generator {
@@ -15,6 +18,8 @@ public:
 	Position pos;
 	Move_list move_list;
 	Position_list* p_list;
+
+	std::unordered_map<Position*, uint64_t> perft_map;
 
 	std::string perft_out = "";
 

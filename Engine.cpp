@@ -90,6 +90,8 @@ void Engine::perft(int depth, Position* pos) {
     }
     cout << "Total: ";
     cout << num_positions << endl;
+    perft_map.clear();
+
 }
 
 void Engine::_perft_debug(int depth, Position* pos) {
@@ -130,6 +132,10 @@ void Engine::_perft_debug(int depth, Position* pos) {
 
 uint64_t Engine::search(int depth, Position* pos) {
     
+    if (perft_map.find(pos) != perft_map.end()) {
+        return perft_map.at(pos);
+    }
+
     if (depth == 0)
         return 1;
 
@@ -147,6 +153,9 @@ uint64_t Engine::search(int depth, Position* pos) {
         make_move(&current, *move);
         num_positions += search(depth - 1, &current);
         undo_move(&current, pos);
+    }
+    if (depth > 2) {
+        perft_map[pos] = num_positions;
     }
     return num_positions;
 }

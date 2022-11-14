@@ -3,9 +3,9 @@ using namespace std;
 
 Engine::Engine() {
 
-    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
     //fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
-    fenInit(&pos, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+    //fenInit(&pos, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
 }
 
 Engine::~Engine() {
@@ -70,20 +70,43 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
 //THIS IS SOME SHIT CODE
 void Engine::perft(int depth, Position* pos) {
 
-    perft_out = "";
     uint64_t num_positions = 0;
-    Position prev = *pos;
-    Position_list pos_list = Position_list(nullptr, pos);
+    Position current = *pos;
 
     Move_list legal_moves;
-    get_legal_moves(pos, &legal_moves);
+    get_legal_moves(&current, &legal_moves);
+
+    for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
+        parse_move(*move);
+        make_move(&current, *move);
+
+        uint64_t part = search(depth - 1, &current);
+
+        //Print how many positions are reached after the move
+        cout << part << endl;
+
+        num_positions += part;
+        undo_move(&current, pos);
+    }
+    cout << "Total: ";
+    cout << num_positions << endl;
+}
+
+void Engine::_perft_debug(int depth, Position* pos) {
+
+    perft_out = "";
+    uint64_t num_positions = 0;
+    Position current = *pos;
+
+    Move_list legal_moves;
+    get_legal_moves(&current, &legal_moves);
 
     for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
         //Print the move being made
         parse_move(*move);
-        make_move(&pos_list.curr_pos, *move);
+        make_move(&current, *move);
 
-        uint64_t part = search(depth - 1, &pos_list);
+        uint64_t part = search(depth - 1, &current);
 
         //Print how many positions are reached after the move
         cout << part << endl;
@@ -91,7 +114,7 @@ void Engine::perft(int depth, Position* pos) {
         perft_out += std::to_string(part)+ "\n";
 
         num_positions += part;
-        undo_move(&pos_list, &prev);
+        undo_move(&current, pos);
     }
     cout << "Total: ";
     cout << num_positions << endl;
@@ -104,27 +127,26 @@ void Engine::perft(int depth, Position* pos) {
 }
 
 
-uint64_t Engine::search(int depth, Position_list* prev_list) {
+
+uint64_t Engine::search(int depth, Position* pos) {
     
     if (depth == 0)
         return 1;
 
     uint64_t num_positions = 0;
-    Position prev = prev_list->curr_pos;
+    Position current = *pos;
 
-    //Save the current position in new position list
-    Position_list pos_list = Position_list(prev_list, &prev_list->curr_pos);
     //Get legal moves for current position
     Move_list legal_moves;
-    get_legal_moves(&pos_list.curr_pos, &legal_moves);
+    get_legal_moves(&current, &legal_moves);
 
     if (depth == 1)
         return (uint64_t)legal_moves.size();
 
     for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
-        make_move(&pos_list.curr_pos, *move);
-        num_positions += search(depth - 1, &pos_list);
-        undo_move(&pos_list, &prev);
+        make_move(&current, *move);
+        num_positions += search(depth - 1, &current);
+        undo_move(&current, pos);
     }
     return num_positions;
 }
@@ -238,10 +260,9 @@ void Engine::make_move(Position* pos, uint32_t move) {
     update_attack(pos);
 }
 
-void Engine::undo_move(Position_list* pos_list, Position* current){
-    pos_list->curr_pos = *current;
+void Engine::undo_move(Position* current, Position* perv){
+    *current = *perv;
 }
-
 
 void Engine::update_attack(Position* pos) {
     pos->numCheckers = 0;

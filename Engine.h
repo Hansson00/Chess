@@ -32,20 +32,20 @@ public:
 	uint64_t generate_held_piece_moves(uint16_t p, Position* pos, uint64_t mask);
 	
 	void make_move(Position* pos, uint32_t move);
-	void undo_move(Position_list* pos_list, Position* current);
+	void undo_move(Position* current, Position* perv);
 	void update_attack(Position* pos);
 	
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
 	void perft(int depth, Position* pos);
-	uint64_t search(int depth, Position_list* p_list);
+	void _perft_debug(int depth, Position* pos);
+	uint64_t search(int depth, Position* pos);
 	void parse_move(uint16_t move);
 	
 
 
 private:
-
 
 	void in_check_masks(Position* pos, bool white_in_check);
 	void en_passant(Position* pos, int pushedPawn);

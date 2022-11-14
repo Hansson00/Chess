@@ -52,6 +52,7 @@ void Chess::events() {
             break;
         }
     }
+
 }
 
 void Chess::draw() {

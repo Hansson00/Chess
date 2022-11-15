@@ -56,8 +56,6 @@ uint64_t Engine::generate_held_piece_moves(uint16_t p_type, Position* pos, uint6
     return result;
 }
 
-
-
 uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
     uint64_t result = 0ULL;
     while (*moves) {
@@ -68,8 +66,8 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
 }
 
 //THIS IS SOME SHIT CODE
-void Engine::perft(int depth, Position* pos) {
-
+uint64_t Engine::perft(int depth, Position* pos) {
+    hash_hits = 0;
     uint64_t num_positions = 0;
     Position current = *pos;
 
@@ -77,6 +75,7 @@ void Engine::perft(int depth, Position* pos) {
     get_legal_moves(&current, &legal_moves);
 
     for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
+        current.moves++;
         parse_move(*move);
         make_move(&current, *move);
 
@@ -90,8 +89,9 @@ void Engine::perft(int depth, Position* pos) {
     }
     cout << "Total: ";
     cout << num_positions << endl;
+    cout << "Hash hits: " << hash_hits << endl;
     perft_map.clear();
-
+    return num_positions;
 }
 
 void Engine::_perft_debug(int depth, Position* pos) {
@@ -129,13 +129,39 @@ void Engine::_perft_debug(int depth, Position* pos) {
 }
 
 
+uint64_t hash_pos(Position* pos) {
+
+    static int prime_list[12] = { 593, 859, 1237, 1069, 2887, 2269, 2953, 2153, 2621, 3709, 4519, 3769 };
+
+    uint64_t temp = 0;
+    for (int i = 0; i < 12; i++) {
+        temp ^= pos->pieceBoards[i] * prime_list[i];
+    }
+    temp ^= pos->teamBoards[0] * 397;
+    temp ^= pos->teamBoards[1] * 877;
+    temp ^= pos->teamBoards[2] * 677;
+
+    temp ^= pos->whiteAttack * 349;
+    temp ^= pos->blackAttack * 479;
+    temp ^= pos->checker * 977;
+    temp ^= pos->enPassant * 389;
+    temp ^= pos->castlingRights * 1181;
+    temp ^= pos->moves * 227;
+
+    return temp;
+}
 
 uint64_t Engine::search(int depth, Position* pos) {
     
-    if (perft_map.find(pos) != perft_map.end()) {
-        return perft_map.at(pos);
+    uint64_t hash;
+    if (depth > 1) {
+        hash = hash_pos(pos);
+        if (perft_map.find(hash) != perft_map.end()) {
+            hash_hits++;
+            uint64_t tmp = perft_map.at(hash);
+            return tmp;
+        }
     }
-
     if (depth == 0)
         return 1;
 
@@ -150,16 +176,17 @@ uint64_t Engine::search(int depth, Position* pos) {
         return (uint64_t)legal_moves.size();
 
     for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
+        current.moves++;
         make_move(&current, *move);
         num_positions += search(depth - 1, &current);
         undo_move(&current, pos);
     }
-    if (depth > 2) {
-        perft_map[pos] = num_positions;
+
+    if (depth > 1) {
+        perft_map[hash] = num_positions;
     }
     return num_positions;
 }
-
 
 void Engine::parse_move(uint16_t move) {
     int from = (move >> 6) & 0x3F;
@@ -595,6 +622,3 @@ void Engine::fenInit(Position* pos, std::string fen) {
     Engine::update_attack(pos);
     p_list = new Position_list(nullptr, pos);
 }
-
-
-

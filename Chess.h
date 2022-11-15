@@ -30,6 +30,7 @@ private:
 	void events();
 	void draw();
 	void command_promt();
+	void compare_perft(int depth, int64_t positions);
 	//void sound_effects();
 	
 	bool running = true;

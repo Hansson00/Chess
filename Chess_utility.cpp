@@ -3,8 +3,21 @@
 #include <iostream>
 using namespace std;
 
+/*
+namespace std {
+	template<>
+	struct hash<Position> {
+		size_t operator()(const Position& key) {
 
-
+			uint64_t temp = 0;
+			for (int i = 0; i < 12; i++) {
+				temp = temp ^ key.pieceBoards[i];
+			}
+			temp = temp ^ key.castlingRights;
+			return hash<uint64_t>()(temp);
+		}
+	};
+}*/
 
 
 uint32_t bit_scan(uint32_t i) {

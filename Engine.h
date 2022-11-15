@@ -4,10 +4,10 @@
 #include "Chess_utility.h"
 #include "Move_Generator.h"
 #include "fstream"
-#include "map"
-#include "vector"
 #include "unordered_map"
+#include "map"
 
+uint64_t hash_pos(Position* pos);
 
 class Engine : private Move_Generator {
 
@@ -19,7 +19,8 @@ public:
 	Move_list move_list;
 	Position_list* p_list;
 
-	std::unordered_map<Position*, uint64_t> perft_map;
+
+	std::unordered_map<uint64_t, uint64_t> perft_map;
 
 	std::string perft_out = "";
 
@@ -32,6 +33,8 @@ public:
 	};
 	Sound sound;
 
+	uint32_t hash_hits = 0;
+
 	uint64_t move_squares(uint16_t* moves, uint16_t* end);
 	void get_legal_moves(Position * pos, Move_list* move_list);
 	uint64_t generate_held_piece_moves(uint16_t p, Position* pos, uint64_t mask);
@@ -43,7 +46,7 @@ public:
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
-	void perft(int depth, Position* pos);
+	uint64_t perft(int depth, Position* pos);
 	void _perft_debug(int depth, Position* pos);
 	uint64_t search(int depth, Position* pos);
 	void parse_move(uint16_t move);

@@ -40,6 +40,9 @@ void Chess::events() {
             case SDLK_SPACE:
                 engine->player_undo_move();
                 break;
+            case SDLK_BACKSPACE:
+                std::cout << hash_pos(&engine->pos)<< std::endl;
+                break;
             default:
                 break;
             }
@@ -156,19 +159,33 @@ void Chess::command_promt() {
         bl = false;
        
         auto start = std::chrono::system_clock::now();
-        if (std::strcmp(str.c_str(), "perft 1") == 0) { engine->perft(1, &engine->pos); }
-        else if (std::strcmp(str.c_str(), "perft 2") == 0) { engine->perft(2, &engine->pos); }
-        else if (std::strcmp(str.c_str(), "perft 3") == 0) { engine->perft(3, &engine->pos); }
-        else if (std::strcmp(str.c_str(), "perft 4") == 0) { engine->perft(4, &engine->pos); }
-        else if (std::strcmp(str.c_str(), "perft 5") == 0) { engine->perft(5, &engine->pos); }
-        else if (std::strcmp(str.c_str(), "perft 6") == 0) { engine->perft(6, &engine->pos); }
-        else if (std::strcmp(str.c_str(), "perft 7") == 0) { engine->perft(7, &engine->pos); }
+        if (std::strcmp(str.c_str(), "perft 1") == 0) { compare_perft(1, 20); }
+        else if (std::strcmp(str.c_str(), "perft 2") == 0) { compare_perft(2, 400); }
+        else if (std::strcmp(str.c_str(), "perft 3") == 0) { compare_perft(3, 8902); }
+        else if (std::strcmp(str.c_str(), "perft 4") == 0) { compare_perft(4, 197281	); }
+        else if (std::strcmp(str.c_str(), "perft 5") == 0) { compare_perft(5, 4865609); }
+        else if (std::strcmp(str.c_str(), "perft 6") == 0) { compare_perft(6, 119060324); }
+        else if (std::strcmp(str.c_str(), "perft 7") == 0) { compare_perft(7, 3195901860); }
+        else if (std::strcmp(str.c_str(), "perft 8") == 0) { compare_perft(8, 84998978956); }
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> diff = end - start;
         std::cout << "Time:" << diff.count() << std::endl;
 
         future = std::async(get_input, &bl);
     }
+}
+
+void Chess::compare_perft(int depth, int64_t positions) {
+
+    int64_t perft = engine->perft(depth, &engine->pos);
+    if (positions == perft) {
+        std::cout << "100% correct\n" << std::endl;
+    }
+    else {
+        std::cout << std::abs(positions- perft) << " incorrect\n" << std::endl;
+    }
+
+
 }
 
 static std::string get_input(bool* bl) {

@@ -3,9 +3,9 @@ using namespace std;
 
 Engine::Engine() {
 
-    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
     //fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
-    //fenInit(&pos, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+    fenInit(&pos, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
 }
 
 Engine::~Engine() {
@@ -128,6 +128,56 @@ void Engine::_perft_debug(int depth, Position* pos) {
     outfile.close();
 }
 
+//Init all squares with random number for each piece board
+void Engine::init_hashtable(Position* pos) {
+    std::random_device os_seed;
+    const uint32_t seed = os_seed();
+    std::mt19937 generator(seed);
+    std::uniform_int_distribution< uint64_t > distribute(0, LLONG_MAX);
+
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 64; j++) {
+            hash_table[i][j] = distribute(generator);
+        }
+    }
+    for (int i = 0; i < 8; i++) {
+        ep_hash[i] = distribute(generator);
+    }
+
+    castle_hash[0] = distribute(generator);
+    castle_hash[1] = distribute(generator);
+    castle_hash[2] = distribute(generator);
+    castle_hash[3] = distribute(generator);
+    black_to_move_hash = distribute(generator);
+}
+
+
+
+
+uint64_t Engine::zobrist_hash(Position* pos) {
+    uint64_t hash = 0;
+    if (!pos->whiteToMove)
+        hash ^= black_to_move_hash;
+    const uint64_t board = pos->teamBoards[0];
+    for (int i = 0; i < 64; i++) {
+        const uint64_t b_pos = 1ULL << i;
+        if (b_pos & board) {
+            int mask = pos->find_mask(b_pos, 0, 12);
+            hash ^= hash_table[mask][i];
+        }
+    }
+    uint8_t castle = pos->castlingRights;
+    for (int i = 0; i < 4; i++) {
+        if (castle & 1)
+            hash ^= castle_hash[i];
+        castle >>= 1;
+    }
+    if (pos->enPassant != 0xFF) {
+        int col = (pos->enPassant & 0xFF) % 8;
+        hash ^= ep_hash[col];
+    }
+    return hash;
+}
 
 uint64_t hash_pos(Position* pos) {
 
@@ -155,11 +205,19 @@ uint64_t Engine::search(int depth, Position* pos) {
     
     uint64_t hash;
     if (depth > 1) {
-        hash = hash_pos(pos);
+        hash = zobrist_hash(pos);
+        cmp_map[hash] = *pos;
         if (perft_map.find(hash) != perft_map.end()) {
             hash_hits++;
             uint64_t tmp = perft_map.at(hash);
             return tmp;
+        }
+        if (cmp_map.find(hash) != cmp_map.end()) {
+            if (pos->cmp(&cmp_map.at(hash)) != 0) {
+                Position pos1 = *pos;
+                Position pos2 = cmp_map.at(hash);
+                cout << "FOUND HASH COLLISION" << endl;
+            }
         }
     }
     if (depth == 0)
@@ -223,17 +281,17 @@ void Engine::make_move(Position* pos, uint32_t move) {
    
     if (flags == 5) { //En passant capture
         uint32_t xd = pos->enPassant >> 8;
-        uint64_t realPawn = ~(1ULL << (pos->enPassant >> 8));
-        pos->pieceBoards[them_offset + 1] &= realPawn; //Remove real pawn
-        pos->teamBoards[enemy] &= realPawn;
-        pos->teamBoards[0] &= realPawn;
+        uint64_t realPawn = 1ULL << (pos->enPassant >> 8);
+        pos->pieceBoards[them_offset + 1] ^= realPawn; //Remove real pawn
+        pos->teamBoards[enemy] ^= realPawn;
+        pos->teamBoards[0] ^= realPawn;
         sound = s_capture;
     }
     else if ((flags & 4) == 4) { //Regular capture
         int capID = pos->find_mask(to_sq, them_offset + 1, them_offset + 6);
         //TODO: If rook gets captured change castling rights
-        pos->pieceBoards[capID] &= ~to_sq;
-        pos->teamBoards[enemy] &= ~to_sq;
+        pos->pieceBoards[capID] ^= to_sq;
+        pos->teamBoards[enemy] ^= to_sq;
         sound = s_capture;
     }
     if (flags == 1) { //Double push
@@ -245,7 +303,7 @@ void Engine::make_move(Position* pos, uint32_t move) {
     if (flags == 2 || flags == 3) { //Castling move
         const uint64_t rook = flags == 2 ? to_sq << 1 : to_sq >> 2;
         const uint64_t to = flags == 2 ? to_sq >> 1 : to_sq << 1;
-        castle(pos, ~rook, to); //Clear rook and move to "to" square
+        castle(pos, rook, to); //Clear rook and move to "to" square
         sound = s_castle;
     }
     
@@ -286,14 +344,15 @@ void Engine::make_move(Position* pos, uint32_t move) {
 
 
     //Move the piece in all bitboards
-    pos->pieceBoards[pieceID] |= to_sq; //Setting bit is done after promotion check because promoting fill change pieceID
-    pos->teamBoards[team] &= ~from_sq;
-    pos->teamBoards[team] |= to_sq;
-    pos->teamBoards[0] &= ~from_sq;
+    pos->pieceBoards[pieceID] ^= to_sq; //Setting bit is done after promotion check because promoting fill change pieceID
+    pos->teamBoards[team] ^= from_sq;
+    pos->teamBoards[team] ^= to_sq;
+    pos->teamBoards[0] ^= from_sq;
     pos->teamBoards[0] |= to_sq;
     
     pos->whiteToMove = !pos->whiteToMove;
     update_attack(pos);
+    uint64_t hash_2 = zobrist_hash(pos);
 }
 
 void Engine::undo_move(Position* current, Position* perv){
@@ -407,12 +466,12 @@ void Engine::castle(Position* pos, uint64_t rook, uint64_t to) {
     const int team = to > 0xFFF ? 1 : 2;
     const int rook_id = to > 0xFFF ? 4 : 10;
     
-    pos->teamBoards[0] &= rook;
-    pos->teamBoards[0] |= to;
-    pos->teamBoards[team] &= rook;
-    pos->teamBoards[team] |= to;
-    pos->pieceBoards[rook_id] &= rook;
-    pos->pieceBoards[rook_id] |= to;
+    pos->teamBoards[0] ^= rook;
+    pos->teamBoards[0] ^= to;
+    pos->teamBoards[team] ^= rook;
+    pos->teamBoards[team] ^= to;
+    pos->pieceBoards[rook_id] ^= rook;
+    pos->pieceBoards[rook_id] ^= to;
     
 }
 
@@ -621,4 +680,6 @@ void Engine::fenInit(Position* pos, std::string fen) {
     pos->enPassant = 0xFF;
     Engine::update_attack(pos);
     p_list = new Position_list(nullptr, pos);
+    init_hashtable(pos);
+    hash_start = zobrist_hash(pos);
 }

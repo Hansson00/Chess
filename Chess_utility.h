@@ -25,6 +25,9 @@ struct Position {
 		//This should not happen
 		return -1;
 	}
+	int cmp(Position* pos) {
+		return memcmp(this, pos, sizeof(pos));
+	}
 };
 
 uint32_t bit_scan(uint32_t);

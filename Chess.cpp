@@ -160,11 +160,11 @@ void Chess::command_promt() {
        
         auto start = std::chrono::system_clock::now();
         if (std::strcmp(str.c_str(), "perft 1") == 0) { compare_perft(1, 20); }
-        else if (std::strcmp(str.c_str(), "perft 2") == 0) { compare_perft(2, 400); }
-        else if (std::strcmp(str.c_str(), "perft 3") == 0) { compare_perft(3, 8902); }
-        else if (std::strcmp(str.c_str(), "perft 4") == 0) { compare_perft(4, 197281	); }
-        else if (std::strcmp(str.c_str(), "perft 5") == 0) { compare_perft(5, 4865609); }
-        else if (std::strcmp(str.c_str(), "perft 6") == 0) { compare_perft(6, 119060324); }
+        else if (std::strcmp(str.c_str(), "perft 2") == 0) { compare_perft(2, 1486); }
+        else if (std::strcmp(str.c_str(), "perft 3") == 0) { compare_perft(3, 62379); }
+        else if (std::strcmp(str.c_str(), "perft 4") == 0) { compare_perft(4, 2103487); }
+        else if (std::strcmp(str.c_str(), "perft 5") == 0) { compare_perft(5, 89941194); }
+        else if (std::strcmp(str.c_str(), "perft 6") == 0) { compare_perft(6, 3048196529); }
         else if (std::strcmp(str.c_str(), "perft 7") == 0) { compare_perft(7, 3195901860); }
         else if (std::strcmp(str.c_str(), "perft 8") == 0) { compare_perft(8, 84998978956); }
         auto end = std::chrono::system_clock::now();

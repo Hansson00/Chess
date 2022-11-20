@@ -6,6 +6,7 @@
 #include "fstream"
 #include "unordered_map"
 #include "map"
+#include "random"
 
 uint64_t hash_pos(Position* pos);
 
@@ -21,6 +22,9 @@ public:
 
 
 	std::unordered_map<uint64_t, uint64_t> perft_map;
+	std::unordered_map<uint64_t, Position> cmp_map;
+
+	uint64_t hash_start;
 
 	std::string perft_out = "";
 
@@ -46,6 +50,7 @@ public:
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
+	void init_hashtable(Position* pos);
 	uint64_t perft(int depth, Position* pos);
 	void _perft_debug(int depth, Position* pos);
 	uint64_t search(int depth, Position* pos);
@@ -66,6 +71,12 @@ private:
 	void (Move_Generator::* arr[6])(Move_list*, Position*) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves,
 	&Move_Generator::generate_bishop_moves, &Move_Generator::generate_rook_moves, &Move_Generator::generate_queen_moves};
 	void fenInit(Position* pos, std::string);
+	uint64_t zobrist_hash(Position* pos);
+
+	uint64_t hash_table[12][64];
+	uint64_t black_to_move_hash;
+	uint64_t ep_hash[8];
+	uint64_t castle_hash[4];
 	
 	
 	

@@ -42,6 +42,9 @@
     <ClCompile Include="Eval_Bar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Evaluation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -66,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Eval_Bar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Evaluation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

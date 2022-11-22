@@ -66,7 +66,7 @@ private:
 	uint64_t find_block(uint32_t king, uint32_t checker);
 	void find_pins(Position* pos);
 	void filter_pins(Move_list* move_list, Position* pos);
-	const uint64_t pinned_ray(int king, int piece);
+	const uint64_t pinned_ray(const int& king, const int& piece) const;
 	uint64_t castle(Position* pos, uint64_t from, uint64_t to, uint64_t hash);
 
 	void (Move_Generator::* arr[6])(Move_list*, Position*) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves,

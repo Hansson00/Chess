@@ -95,12 +95,14 @@ uint64_t Engine::perft(int depth, Position* pos) {
 }
 
 void Engine::test() {
-    Move_list moves;
-    get_legal_moves(&pos, &moves);
+    auto start = std::chrono::system_clock::now();
     Position curr = pos;
     uint64_t hash = zobrist_hash(&pos);
+    Move_list moves;
+    get_legal_moves(&pos, &moves);
     for (int i = 0; i < 99999999; i++) {
         make_move(&curr, moves.move_list[5], hash);
+
         /// <summary>
         /// 
         /// 
@@ -113,7 +115,9 @@ void Engine::test() {
         /// </summary>
         undo_move(&curr, &pos);
     }
-    cout << "done";
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff = (end - start);
+    cout << diff.count() << endl;
 }
 
 void Engine::_perft_debug(int depth, Position* pos) {
@@ -182,16 +186,18 @@ void Engine::init_hashtable(Position* pos) {
 
 uint64_t Engine::zobrist_hash(Position* pos) {
     uint64_t hash = pos->moves * move_hash;
-    if (!pos->whiteToMove)
-        hash ^= black_to_move_hash;
-    const uint64_t board = pos->teamBoards[0];
-    for (int i = 0; i < 64; i++) {
-        const uint64_t b_pos = 1ULL << i;
-        if (b_pos & board) {
-            int mask = pos->find_mask(b_pos, 0, 12);
-            hash ^= hash_table[mask][i];
-        }
+    //if (!pos->whiteToMove)
+       // hash ^= black_to_move_hash;
+    uint64_t board = pos->teamBoards[0];
+    const uint64_t white = pos->teamBoards[1];
+    while (board) {
+        const int bit = long_bit_scan(board);
+        const uint64_t b_pos = 1ULL << bit;
+        const int id = (white & b_pos) ? pos->find_mask(b_pos, 0, 6) : pos->find_mask(b_pos, 6, 12);
+        hash ^= hash_table[id][bit];
+        board &= board - 1;
     }
+
     uint8_t castle = pos->castlingRights;
     for (int i = 0; i < 4; i++) {
         if (castle & 1)
@@ -244,6 +250,7 @@ uint64_t Engine::search(int depth, Position* pos, uint64_t hash) {
 
     for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
         uint64_t new_hash = make_move(&current, *move, hash);
+        
         if (perft_map.find(new_hash) != perft_map.end()) {
             hash_hits++;
             num_positions += perft_map.at(new_hash);
@@ -257,6 +264,7 @@ uint64_t Engine::search(int depth, Position* pos, uint64_t hash) {
     if (depth > 1) {
         perft_map[hash] = num_positions;
     }
+    
     return num_positions;
 }
 
@@ -293,7 +301,7 @@ uint64_t Engine::make_move(Position* pos, uint32_t move, uint64_t curr_hash) {
     uint8_t previous_castling = pos->castlingRights;
     
     //Flip side to move hash
-    curr_hash ^= black_to_move_hash;
+    //curr_hash ^= black_to_move_hash;
     //TODO: Find better way to know which piece made the move, maybe save as flag in move itself
     uint32_t pieceID = move >> 16;
     pos->pieceBoards[pieceID] &= ~from_sq;
@@ -332,7 +340,7 @@ uint64_t Engine::make_move(Position* pos, uint32_t move, uint64_t curr_hash) {
         sound = s_castle;
     }
     
-    if (flags > 7) { //Promotion
+    else if (flags > 7) { //Promotion
         pieceID = piece_offset + 2 + (flags & 0x3); //Change which bitboard should get the set bit
     }
 
@@ -384,8 +392,6 @@ uint64_t Engine::make_move(Position* pos, uint32_t move, uint64_t curr_hash) {
     }
     
 
-
-
     //Move the piece in all bitboards
     pos->pieceBoards[pieceID] ^= to_sq; //Setting bit is done after promotion check because promoting fill change pieceID
     pos->teamBoards[team] ^= from_sq;
@@ -401,21 +407,15 @@ uint64_t Engine::make_move(Position* pos, uint32_t move, uint64_t curr_hash) {
     update_attack(pos);
 
     //Update move counter hash
-    const int moves = pos->moves;
-    curr_hash ^= moves * move_hash;
-    curr_hash ^= moves * move_hash + move_hash;
-    pos->moves++;
+    curr_hash ^= pos->moves * move_hash;
+    curr_hash ^= ++pos->moves * move_hash;
     
-    /*
-        const uint64_t tmp = zobrist_hash(pos);
+    
+    const uint64_t tmp = zobrist_hash(pos);
 
     if (curr_hash != tmp) {
         cout << "Faulty hash" << endl;
     }
-    */
-
-    
-    
     
     return curr_hash;
 }
@@ -518,7 +518,7 @@ void Engine::filter_pins(Move_list* move_list, Position* pos) {
 
 
 //Find the ray in which the piece is able to move
-const uint64_t Engine::pinned_ray (int king, int piece) {
+const uint64_t Engine::pinned_ray (const int& king, const int& piece) const{
     //On the same rank
     if (king / 8 == piece / 8)
         return ranks[king / 8];

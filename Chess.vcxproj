@@ -150,6 +150,7 @@
     <ClCompile Include="Chess.cpp" />
     <ClCompile Include="Chess_utility.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Evaluation.cpp" />
     <ClCompile Include="Eval_Bar.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Move_Generator.cpp" />
@@ -160,6 +161,7 @@
   <ItemGroup>
     <ClInclude Include="Chess.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="Evaluation.h" />
     <ClInclude Include="Eval_Bar.h" />
     <ClInclude Include="Move_Generator.h" />
     <ClInclude Include="Chess_utility.h" />

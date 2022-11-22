@@ -19,6 +19,16 @@ namespace std {
 	};
 }*/
 
+uint32_t bitCount(uint64_t i) {
+	// HD, Figure 5-2
+	i = i - ((i >> 1) & 0x5555555555555555ULL);
+	i = (i & 0x3333333333333333ULL) + ((i >> 2) & 0x3333333333333333ULL);
+	i = (i + (i >> 4)) & 0x0f0f0f0f0f0f0f0fULL;
+	i = i + (i >> 8);
+	i = i + (i >> 16);
+	i = i + (i >> 32);
+	return (uint32_t)i & 0x7f;
+}
 
 uint32_t bit_scan(uint32_t i) {
 	i = ~i & (i - 1);

@@ -3,18 +3,18 @@
 #include "string"
 
 struct Position {
-	uint64_t pieceBoards[12];
-	uint64_t teamBoards[3];
-	uint64_t whiteAttack;
-	uint64_t blackAttack;
-	uint64_t pinnedPieces;
-	uint64_t block_check;
-	uint64_t checker;
+	uint64_t pieceBoards[12] = {};
+	uint64_t teamBoards[3] = {};
+	uint64_t whiteAttack = 0;
+	uint64_t blackAttack = 0;
+	uint64_t pinnedPieces = 0;
+	uint64_t block_check = 0;
+	uint64_t checker = 0;
 	uint64_t moves = 0;
-	bool whiteToMove;
-	uint8_t castlingRights;
-	int numCheckers;
-	int enPassant;
+	bool whiteToMove = true;
+	uint8_t castlingRights = 0;
+	int numCheckers = 0;
+	int enPassant = 0;
 	//If this method fails to find mask it is used wrong or something is wrong in the code
 	int find_mask(uint64_t sq, int start, int end) const {
 		for (int i = start; i < end; i++) {
@@ -24,9 +24,6 @@ struct Position {
 		}
 		//This should not happen
 		return -1;
-	}
-	int cmp(Position* pos) {
-		return memcmp(this, pos, sizeof(pos));
 	}
 };
 
@@ -40,7 +37,7 @@ void print_bit_board(uint64_t b);
 struct Move_list {
 	uint32_t* start() { return move_list; };
 	uint32_t* end() { return last; };
-	uint32_t size() { return end() - start(); }
+	uint32_t size() { return (uint32_t)(end() - start()); }
 
 	uint32_t contains(const uint32_t move) {
 		for (uint32_t* i = start(); i < end(); i++) {
@@ -54,9 +51,9 @@ struct Move_list {
 	}
 	void clear() {last = move_list;}
 	void add_move(const uint32_t move) { *last++ = move; }
-	uint16_t to_sq(const uint32_t move) const { return move & 0x3F; }
-	uint16_t from_sq(const uint32_t move) const { return (move >> 6) & 0x3F; }
-	uint16_t flags(const uint32_t move) const { return move >> 12; }
+	uint16_t to_sq(const uint32_t move) const { return (uint32_t)(move & 0x3F); }
+	uint16_t from_sq(const uint32_t move) const { return uint32_t((move >> 6) & 0x3F); }
+	uint16_t flags(const uint32_t move) const { return (uint16_t)(move >> 12); }
 	uint32_t move_list[100];
 	uint32_t* last = move_list; //60 should be enough space for all moves
 };

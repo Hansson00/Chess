@@ -9,14 +9,6 @@ public:
 	Move_Generator();
 	~Move_Generator();
 	//uint16_t* generate_held_piece_moves(uint16_t* move_list, uint16_t p, Position* pos ,uint64_t mask, bool white);
-	typedef enum Piece{
-		King,
-		Pawn,
-		Knight,
-		Bishop,
-		Rook,
-		Queen
-	};
 
 	//Functions to generate each kind of piece moves
 	void generate_pawn_moves(Move_list* move_list, Position* pos);

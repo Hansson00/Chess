@@ -159,7 +159,7 @@ void Chess::command_promt() {
         bl = false;
        
         auto start = std::chrono::system_clock::now();
-        if (std::strcmp(str.c_str(), "perft 1") == 0) { engine->test();/*compare_perft(1, 1486);*/ }
+        if (std::strcmp(str.c_str(), "perft 1") == 0) { compare_perft(1, 1486); }
         else if (std::strcmp(str.c_str(), "perft 2") == 0) { compare_perft(2, 1486); }
         else if (std::strcmp(str.c_str(), "perft 3") == 0) { compare_perft(3, 62379); }
         else if (std::strcmp(str.c_str(), "perft 4") == 0) { compare_perft(4, 2103487); }

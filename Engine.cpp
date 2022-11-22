@@ -69,6 +69,58 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
     return result;
 }
 
+
+uint32_t Engine::find_best_move(int depth, Position* pos) {
+    if (depth == 0)
+        return Evaluate(pos);
+    Move_list moves;
+    get_legal_moves(pos, &moves);
+    Position current = *pos;
+    int best_eval = -99999; //Initiate as worst eval
+    int perspective = pos->whiteToMove ? -1 : 1; //Inverse since we make a move first
+    uint32_t best_move = moves.move_list[0];
+
+    for (uint32_t* move = moves.start(); move < moves.end(); move++) {
+        current.moves++;
+        make_move(&current, *move);
+
+        int eval = perspective * -1 * search_eval(depth - 1, -999999 * perspective, 9999999 * perspective, &current);
+
+        if (eval > best_eval) {
+            best_move = *move;
+        }
+        best_eval = std::max(best_eval, eval);
+        undo_move(&current, pos);
+    }
+
+    return best_move;
+}
+
+int Engine::search_eval(int depth, int alpha, int beta, Position* pos) {
+    if (depth == 0)
+        return Evaluate(pos);
+    Move_list moves;
+    get_legal_moves(pos, &moves);
+    Position current = *pos;
+
+    if (moves.size() == 0) {
+        if (pos->numCheckers > 0)
+            return -99999;
+        else
+            return 0;
+    }
+    for (uint32_t* move = moves.start(); move < moves.end(); move++) {
+        make_move(&current, *move);
+        int eval = -search_eval(depth - 1, -beta, -alpha, &current);
+        undo_move(&current, pos);
+        if (eval >= beta)
+            return beta;
+        //Update current worst eval as long as it's not better than the worst for our opponent
+        alpha = std::max(eval, alpha);
+    }
+    return alpha;
+}
+
 //THIS IS SOME SHIT CODE
 uint64_t Engine::perft(int depth, Position* pos) {
     hash_hits = 0;

@@ -6,6 +6,7 @@
 #include "Chess_utility.h"
 #include "future"
 #include "chrono"
+#include "Evaluation.h"
 
 static std::string get_input(bool* bl);
 

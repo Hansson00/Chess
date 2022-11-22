@@ -6,6 +6,7 @@
 #include "fstream"
 #include "unordered_map"
 #include "random"
+#include "Evaluation.h"
 
 uint64_t hash_pos(Position* pos);
 
@@ -49,6 +50,8 @@ public:
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
+	int search_eval(int depth, int alpha, int beta, Position* pos);
+	uint32_t find_best_move(int depth, Position* pos);
 	uint64_t perft(int depth, Position* pos);
 	void _perft_debug(int depth, Position* pos);
 	uint64_t search(int depth, Position* pos);

@@ -1,9 +1,4 @@
 #include "Chess.h"
-#include "Engine.h"
-#include "Move_Generator.h"
-#include "Chrono"
-#include <future>
-#include <thread>
 
 
 Chess::Chess(Uint16 width, uint16_t height) {
@@ -99,6 +94,7 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 const uint32_t real_move = move_list.contains(mouse_move);
                 if (real_move != 0) {
                     engine->player_make_move(real_move);
+                    
                     switch (engine->sound){
                     case Engine::s_move: sound_manager->play_sound(sound_manager->move); break;
                     case Engine::s_capture: sound_manager->play_sound(sound_manager->capture); break;
@@ -106,6 +102,8 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     case Engine::s_check: sound_manager->play_sound(sound_manager->check); break;
                     case Engine::s_checkmate: sound_manager->play_sound(sound_manager->checkmate); break;
                     }
+                    uint32_t move = engine->find_best_move(4, &engine->pos);
+                    engine->player_make_move(move);
                 }
                 /*
                 chagne_bitboards(held_piece, 0, held_piece_board);

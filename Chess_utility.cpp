@@ -1,7 +1,6 @@
 #include "Chess_utility.h"
 #include <string>
 #include <iostream>
-using namespace std;
 
 /*
 namespace std {
@@ -19,7 +18,7 @@ namespace std {
 	};
 }*/
 
-uint32_t bitCount(uint64_t i) {
+uint32_t bit_count(uint64_t i) {
 	// HD, Figure 5-2
 	i = i - ((i >> 1) & 0x5555555555555555ULL);
 	i = (i & 0x3333333333333333ULL) + ((i >> 2) & 0x3333333333333333ULL);
@@ -72,11 +71,11 @@ void print_bit_board(uint64_t b) {
 	for (int i = 0; i < 64; i++) {
 		stb += (b & 1) == 1 ? 'x' : '0';
 		if (i % 8 == 7){
-			cout << stb;
-			cout << "\n";
+			std::cout << stb;
+			std::cout << "\n";
 			stb = "";
 		}
 		b >>= 1;
 	}
-	cout << "\n\n";
+	std::cout << "\n\n";
 }

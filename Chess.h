@@ -22,10 +22,11 @@ private:
 	double eval_test = -6.235;
 
 
+
 	Sound_Manager* sound_manager;
 	Window* window;
 	Engine* engine;
-
+	int move_highlight = 0;
 
 
 	void events();

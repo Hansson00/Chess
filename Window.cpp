@@ -19,6 +19,7 @@ Window::Window(uint32_t window_width, uint32_t window_height) {
 	generate_textures();
 	generate_board_texture();
 	generate_attack_texture();
+	generate_move_texture();
 	generate_circle_texture();
 }
 
@@ -98,6 +99,14 @@ void Window::generate_attack_texture() {
 	SDL_Rect rect = { 0, 0, 120, 120 };
 	SDL_FillRect(surface, &rect, 0xff0000);
 	this->attack_square = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+}
+
+void Window::generate_move_texture() {
+	SDL_Surface* surface = SDL_CreateRGBSurface(0, 120, 120, 32, 0, 0, 0, 0);
+	SDL_Rect rect = { 0, 0, 120, 120 };
+	SDL_FillRect(surface, &rect, 0xffff00);
+	this->move_square = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 }
 

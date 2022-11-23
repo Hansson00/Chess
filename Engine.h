@@ -50,6 +50,7 @@ public:
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
+	int search_eval2(int depth, Position* pos);
 	int search_eval(int depth, int alpha, int beta, Position* pos);
 	uint32_t find_best_move(int depth, Position* pos);
 	uint64_t perft(int depth, Position* pos);

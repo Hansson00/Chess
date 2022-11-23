@@ -35,6 +35,15 @@ void Chess::events() {
             case SDLK_SPACE:
                 engine->player_undo_move();
                 break;
+            case SDLK_4:
+                engine->player_make_move(engine->find_best_move(4, &engine->pos));
+                break;
+            case SDLK_5:
+                engine->player_make_move(engine->find_best_move(5, &engine->pos));
+                break;
+            case SDLK_6:
+                engine->player_make_move(engine->find_best_move(6, &engine->pos));
+                break;
             case SDLK_BACKSPACE:
                 std::cout << hash_pos(&engine->pos)<< std::endl;
                 break;
@@ -57,7 +66,11 @@ void Chess::draw() {
     
     window->draw_board();
     //window->draw_texture_at_square(engine->move_squares(engine->pos.whiteAttack, window->attack_square);
-    window->draw_texture_at_square(engine->pos.pinnedPieces, window->attack_square);
+    if (move_highlight != 0) {
+        window->draw_texture_at_square(1ULL << (move_highlight & 0x3F), window->move_square);
+        window->draw_texture_at_square(1ULL << (move_highlight >> 6), window->move_square);
+    }
+    
     window->draw_pieces(engine->pos.pieceBoards, held_piece_board);
     if (held_piece != 255) {
         window->draw_piece_at_mouse(held_piece);
@@ -94,7 +107,8 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 const uint32_t real_move = move_list.contains(mouse_move);
                 if (real_move != 0) {
                     engine->player_make_move(real_move);
-                    
+                    move_highlight = real_move & 0xFFFF;
+                    draw();
                     switch (engine->sound){
                     case Engine::s_move: sound_manager->play_sound(sound_manager->move); break;
                     case Engine::s_capture: sound_manager->play_sound(sound_manager->capture); break;
@@ -102,8 +116,22 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     case Engine::s_check: sound_manager->play_sound(sound_manager->check); break;
                     case Engine::s_checkmate: sound_manager->play_sound(sound_manager->checkmate); break;
                     }
-                    uint32_t move = engine->find_best_move(4, &engine->pos);
-                    engine->player_make_move(move);
+                    uint32_t move = engine->find_best_move(5, &engine->pos);
+                    move_highlight = move & 0xFFFF;
+                    if (move != 0) {
+                        engine->player_make_move(move);
+                        switch (engine->sound) {
+                        case Engine::s_move: sound_manager->play_sound(sound_manager->move); break;
+                        case Engine::s_capture: sound_manager->play_sound(sound_manager->capture); break;
+                        case Engine::s_castle: sound_manager->play_sound(sound_manager->castle); break;
+                        case Engine::s_check: sound_manager->play_sound(sound_manager->check); break;
+                        case Engine::s_checkmate: sound_manager->play_sound(sound_manager->checkmate); break;
+                        }
+                    }
+                    else {
+                        sound_manager->play_sound(sound_manager->checkmate);
+                    }
+                    
                 }
                 /*
                 chagne_bitboards(held_piece, 0, held_piece_board);

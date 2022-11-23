@@ -23,6 +23,7 @@ public:
 
 	SDL_Texture* legal_circle;
 	SDL_Texture* attack_square;
+	SDL_Texture* move_square;
 
 private:
 
@@ -44,4 +45,5 @@ private:
 	void generate_board_texture();
 	void generate_circle_texture();
 	void generate_attack_texture();
+	void generate_move_texture();
 };

@@ -38,6 +38,15 @@ void Chess::events() {
             case SDLK_BACKSPACE:
                 std::cout << hash_pos(&engine->pos)<< std::endl;
                 break;
+            case SDLK_1:
+                engine->player_make_move(engine->find_best_move_fokk(1, &engine->pos));
+                break;
+            case SDLK_2:
+                engine->player_make_move(engine->find_best_move_fokk(2, &engine->pos));
+                break;
+            case SDLK_3:
+                engine->player_make_move(engine->find_best_move_fokk(3, &engine->pos));
+                break;
             case SDLK_4:
                 engine->player_make_move(engine->find_best_move(4, &engine->pos));
                 play_sound();

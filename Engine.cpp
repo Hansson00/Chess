@@ -62,15 +62,6 @@ uint64_t Engine::generate_held_piece_moves(uint16_t p_type, Position* pos, uint6
     return result;
 }
 
-uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
-    uint64_t result = 0ULL;
-    while (*moves) {
-        result |= 1ULL << (*moves);
-        moves++;
-    }
-    return result;
-}
-
 uint32_t Engine::find_best_move_fokk(int depth, Position* pos)
 {
     Move_list moves;
@@ -114,7 +105,7 @@ int Engine::search_eval_fokk(int depth, Position* pos)
     if (legal_moves.size() == 0)
     {
         if (pos->numCheckers > 0)
-            return -99999;
+            return -99999+pos->moves;
         else
             return 0;
     }

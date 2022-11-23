@@ -154,6 +154,7 @@
     <ClCompile Include="Eval_Bar.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Move_Generator.cpp" />
+    <ClCompile Include="Opening_book.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="Eval_Bar.h" />
     <ClInclude Include="Move_Generator.h" />
     <ClInclude Include="Chess_utility.h" />
+    <ClInclude Include="Opening_book.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="Window.h" />

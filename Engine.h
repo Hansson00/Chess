@@ -46,7 +46,6 @@ public:
 
 	uint32_t hash_hits = 0;
 
-	uint64_t move_squares(uint16_t* moves, uint16_t* end);
 	void get_legal_moves(Position* pos, Move_list* move_list);
 	uint64_t generate_held_piece_moves(uint16_t p, Position* pos, uint64_t mask);
 

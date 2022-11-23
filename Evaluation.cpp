@@ -1,69 +1,53 @@
 #include "Evaluation.h"
 
 
-	int Evaluate(Position* pos) {
-		int m_white = 0, m_black = 0;
-		for (int i = 1; i < 6; i++) {
-			m_white += bit_count(pos->pieceBoards[i]) * piece_value[i];
-			m_black += bit_count(pos->pieceBoards[i + 6]) * piece_value[i];
-		}
-
-		int eval_cap = pos->whiteToMove ? m_white - m_black : m_black - m_white;
-
-		int eval_pos = 0;
-
-		if (pos->whiteToMove)
-		{
-			uint64_t pawn = pos->pieceBoards[1];
-			while (pawn)
-			{
-				int p = long_bit_scan(pawn);
-				eval_pos += w_pawn_heatmap[p];
-				pawn &= pawn - 1;
-			}
-			uint64_t king = pos->pieceBoards[0];
-			while (king)
-			{
-				int k = long_bit_scan(king);
-				eval_pos += w_king_heatmap[k];
-				king &= king - 1;
-			}
-			uint32_t rook = pos->pieceBoards[4];
-			while (rook)
-			{
-				int r = long_bit_scan(rook);
-				eval_pos += w_rook_heatmap[r];
-				rook &= rook - 1;
-
-			}
-		}
-		else
-		{
-			uint64_t pawn = pos->pieceBoards[7];
-			while (pawn)
-			{
-				int p = long_bit_scan(pawn);
-				eval_pos += b_pawn_heatmap[p];
-				pawn &= pawn - 1;
-			}
-			uint64_t king = pos->pieceBoards[6];
-			while (king)
-			{
-				int k = long_bit_scan(king);
-				eval_pos += b_king_heatmap[k];
-				king &= king - 1;
-			}
-			uint32_t rook = pos->pieceBoards[10];
-			while (rook)
-			{
-				int r = long_bit_scan(rook);
-				eval_pos += w_rook_heatmap[r];
-				rook &= rook - 1;
-
-			}
-
-		}
-		return eval_cap * 5 + eval_pos;
+int Evaluate(Position* pos) {
+	int m_white = 0, m_black = 0;
+	for (int i = 1; i < 6; i++) {
+		m_white += bit_count(pos->pieceBoards[i]) * piece_value[i];
+		m_black += bit_count(pos->pieceBoards[i + 6]) * piece_value[i];
 	}
+
+	int eval_cap = pos->whiteToMove ? m_white - m_black : m_black - m_white;
+	int eval_pos = 0;
+	const int* heatmap;
+
+	int us_offset = pos->whiteToMove ? 0 : 6;
+	int they_offset = pos->whiteToMove ? 6 : 0;
+
+
+	/* Pawn */
+	heatmap = pos->whiteToMove ? w_pawn_heatmap : b_pawn_heatmap;
+	eval_pos += eval_piece(pos->pieceBoards[1 + us_offset], heatmap);
+	eval_pos -= eval_piece(pos->pieceBoards[1 + they_offset], heatmap);
+
+
+	/* KING */
+	//heatmap = pos->whiteToMove ? w_king_heatmap : b_king_heatmap;
+	heatmap = king_late_game;
+	eval_pos += eval_piece(pos->pieceBoards[0 + us_offset], heatmap);
+	eval_pos -= eval_piece(pos->pieceBoards[0 + they_offset], heatmap);
+
+	/* Rooks */
+	heatmap = pos->whiteToMove ? w_rook_heatmap : b_rook_heatmap;
+	eval_pos += eval_piece(pos->pieceBoards[4 + us_offset], heatmap);
+	eval_pos -= eval_piece(pos->pieceBoards[4 + they_offset], heatmap);
+
+	return eval_cap + eval_pos;
+}
+
+int eval_piece(uint64_t piece_board, const int* heatmap)
+{
+	int eval_pos = 0;
+	while (piece_board)
+	{
+		eval_pos += 10 * heatmap[long_bit_scan(piece_board)];
+		piece_board &= piece_board - 1;
+	}
+	return eval_pos;
+
+}
+
+
 
 

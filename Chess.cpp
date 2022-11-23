@@ -60,7 +60,6 @@ void Chess::events() {
             running = false;
             break;
         default:
-            
             break;
         }
     }
@@ -71,7 +70,11 @@ void Chess::draw() {
     
     window->draw_board();
     //window->draw_texture_at_square(engine->move_squares(engine->pos.whiteAttack, window->attack_square);
-    window->draw_texture_at_square(engine->pos.pinnedPieces, window->attack_square);
+    if (move_highlight != 0) {
+        window->draw_texture_at_square(1ULL << (move_highlight & 0x3F), window->move_square);
+        window->draw_texture_at_square(1ULL << (move_highlight >> 6), window->move_square);
+    }
+    
     window->draw_pieces(engine->pos.pieceBoards, held_piece_board);
     if (held_piece != 255) {
         window->draw_piece_at_mouse(held_piece);
@@ -108,7 +111,8 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 const uint32_t real_move = move_list.contains(mouse_move);
                 if (real_move != 0) {
                     engine->player_make_move(real_move);
-                    
+                    move_highlight = real_move & 0xFFFF;
+                    draw();
                     switch (engine->sound){
                     case Engine::s_move: sound_manager->play_sound(sound_manager->move); break;
                     case Engine::s_capture: sound_manager->play_sound(sound_manager->capture); break;

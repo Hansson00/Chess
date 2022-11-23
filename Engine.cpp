@@ -4,6 +4,7 @@ using namespace std;
 Engine::Engine() {
 
     fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+
     //fenInit(&pos, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
     //fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
     //fenInit(&pos, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
@@ -140,16 +141,20 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
         return Evaluate(pos);
     Move_list moves;
     get_legal_moves(pos, &moves);
+
     Position current = *pos;
     int best_eval = -99999; //Initiate as worst eval
-    int perspective = pos->whiteToMove ? -1 : 1; //Inverse since we make a move first
     uint32_t best_move = moves.move_list[0];
+
+    if (moves.size() == 0) {
+        return 0;
+    }
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         current.moves++;
         make_move(&current, *move);
 
-        int eval = perspective * -1 * search_eval(depth - 1, -999999 * perspective, 9999999 * perspective, &current);
+        int eval = -search_eval2(depth - 1, &current);
 
         if (eval > best_eval) {
             best_move = *move;
@@ -170,7 +175,7 @@ int Engine::search_eval(int depth, int alpha, int beta, Position* pos) {
 
     if (moves.size() == 0) {
         if (pos->numCheckers > 0)
-            return -99999;
+            return -999999;
         else
             return 0;
     }
@@ -184,6 +189,31 @@ int Engine::search_eval(int depth, int alpha, int beta, Position* pos) {
         alpha = std::max(eval, alpha);
     }
     return alpha;
+}
+
+int Engine::search_eval2(int depth, Position* pos) {
+    if (depth == 0)
+        return Evaluate(pos);
+    Move_list moves;
+    get_legal_moves(pos, &moves);
+    if (moves.size() == 0) {
+        if (pos->numCheckers > 0)
+            return -99999; //Checkmate
+        else
+            return 0; //Stalemate
+    }
+    Position current = *pos;
+    int best_eval = -999999;
+
+    for (uint32_t* move = moves.start(); move < moves.end(); move++) {
+        make_move(&current, *move);
+        int eval = -search_eval2(depth - 1, &current);
+        undo_move(&current, pos);
+        //Update current worst eval as long as it's not better than the worst for our opponent
+        if (eval > best_eval)
+            best_eval = eval;
+    }
+    return best_eval;
 }
 
 //THIS IS SOME SHIT CODE

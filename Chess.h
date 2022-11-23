@@ -26,7 +26,7 @@ private:
 	Sound_Manager* sound_manager;
 	Window* window;
 	Engine* engine;
-	int move_highlight = 0;
+	
 
 
 	void events();
@@ -34,6 +34,7 @@ private:
 	void command_promt();
 	void compare_perft(int depth, int64_t positions);
 	//void sound_effects();
+	void play_sound();
 	
 	bool running = true;
 	uint64_t held_piece_board = 0;

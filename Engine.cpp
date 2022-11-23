@@ -3,7 +3,8 @@ using namespace std;
 
 Engine::Engine() {
 
-    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit(&pos, "rk6/8/8/8/8/8/8/7K w -");
 
     //fenInit(&pos, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
     //fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
@@ -108,7 +109,7 @@ int Engine::search_eval_fokk(int depth, Position* pos)
     Move_list legal_moves;
     get_legal_moves(&current, &legal_moves);
 
-    int best_move =  -999910-depth;
+    int best_move =  -999999+depth;
 
     if (legal_moves.size() == 0)
     {
@@ -143,7 +144,7 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
     get_legal_moves(pos, &moves);
 
     Position current = *pos;
-    int best_eval = -99999; //Initiate as worst eval
+    int best_eval = -999999; //Initiate as worst eval
     uint32_t best_move = moves.move_list[0];
 
     if (moves.size() == 0) {
@@ -151,10 +152,11 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
     }
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
-        current.moves++;
         make_move(&current, *move);
 
-        int eval = -search_eval2(depth - 1, &current);
+        int eval = -search_eval2(depth - 1, -999999 - depth, 999999 + depth, &current);
+        parse_move(*move);
+        cout << eval << endl;
 
         if (eval > best_eval) {
             best_move = *move;
@@ -162,58 +164,57 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
         best_eval = std::max(best_eval, eval);
         undo_move(&current, pos);
     }
-
+    cout << endl << endl;
     return best_move;
 }
 
-int Engine::search_eval(int depth, int alpha, int beta, Position* pos) {
-    if (depth == 0)
-        return Evaluate(pos);
-    Move_list moves;
-    get_legal_moves(pos, &moves);
-    Position current = *pos;
-
-    if (moves.size() == 0) {
-        if (pos->numCheckers > 0)
-            return -999999;
-        else
-            return 0;
-    }
-    for (uint32_t* move = moves.start(); move < moves.end(); move++) {
-        make_move(&current, *move);
-        int eval = -search_eval(depth - 1, -beta, -alpha, &current);
-        undo_move(&current, pos);
-        if (eval >= beta)
-            return beta;
-        //Update current worst eval as long as it's not better than the worst for our opponent
-        alpha = std::max(eval, alpha);
-    }
-    return alpha;
-}
-
-int Engine::search_eval2(int depth, Position* pos) {
+int Engine::search_eval(int depth, Position* pos) {
     if (depth == 0)
         return Evaluate(pos);
     Move_list moves;
     get_legal_moves(pos, &moves);
     if (moves.size() == 0) {
         if (pos->numCheckers > 0)
-            return -99999; //Checkmate
+            return -999999 - depth; //Checkmate
         else
             return 0; //Stalemate
     }
-    Position current = *pos;
     int best_eval = -999999;
+    Position current = *pos;
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         make_move(&current, *move);
-        int eval = -search_eval2(depth - 1, &current);
+        int eval = -search_eval(depth - 1, &current);
         undo_move(&current, pos);
-        //Update current worst eval as long as it's not better than the worst for our opponent
         if (eval > best_eval)
             best_eval = eval;
     }
     return best_eval;
+}
+
+int Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
+    if (depth == 0)
+        return Evaluate(pos);
+    Move_list moves;
+    get_legal_moves(pos, &moves);
+    if (moves.size() == 0) {
+        if (pos->numCheckers > 0)
+            return -999999 - depth; //Checkmate
+        else
+            return 0; //Stalemate
+    }
+    Position current = *pos;
+
+    for (uint32_t* move = moves.start(); move < moves.end(); move++) {
+        make_move(&current, *move);
+        int eval = -search_eval2(depth - 1, -beta, -alpha, &current);
+        undo_move(&current, pos);
+        if (eval >= beta)
+            return beta;
+        if (eval > alpha)
+            alpha = eval;
+    }
+    return alpha;
 }
 
 //THIS IS SOME SHIT CODE
@@ -495,6 +496,7 @@ void Engine::make_move(Position* pos, uint32_t move) {
     pos->teamBoards[0] |= to_sq;
 
     pos->whiteToMove = !pos->whiteToMove;
+    pos->moves++;
     update_attack(pos);
 }
 
@@ -544,6 +546,7 @@ void Engine::update_attack(Position* pos) {
 }
 
 void Engine::player_make_move(const uint32_t move) {
+    move_highlight = move & 0xFFFF;
     make_move(&pos, move);
     p_list = new Position_list(p_list, &pos);
     pos = p_list->curr_pos;

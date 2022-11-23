@@ -20,6 +20,7 @@ public:
 	Position pos;
 	Move_list move_list;
 	Position_list* p_list;
+	int move_highlight = 0;
 
 	uint64_t zobrist_hash(Position* pos);
 	void init_hashtable(Position* pos);
@@ -56,8 +57,8 @@ public:
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
-	int search_eval2(int depth, Position* pos);
-	int search_eval(int depth, int alpha, int beta, Position* pos);
+	int search_eval2(int depth, int alpha, int beta, Position* pos);
+	int search_eval(int depth, Position* pos);
 	uint32_t find_best_move(int depth, Position* pos);
 	uint64_t perft(int depth, Position* pos);
 	void _perft_debug(int depth, Position* pos);

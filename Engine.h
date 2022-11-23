@@ -7,6 +7,7 @@
 #include "unordered_map"
 #include "random"
 #include "Evaluation.h"
+#include "queue"
 
 uint64_t hash_pos(Position* pos);
 
@@ -21,10 +22,15 @@ public:
 	Position_list* p_list;
 
 	uint64_t zobrist_hash(Position* pos);
-
 	void init_hashtable(Position* pos);
 
+	uint32_t find_best_move_fokk(int depth, Position* pos);
+	int search_eval_fokk(int depth, Position* pos);
+
+	std::unordered_map<uint64_t, int> eval_map;
+
 	std::unordered_map<uint64_t, uint64_t> perft_map;
+	
 
 	std::string perft_out = "";
 

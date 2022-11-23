@@ -7,5 +7,63 @@
 			m_white += bit_count(pos->pieceBoards[i]) * piece_value[i];
 			m_black += bit_count(pos->pieceBoards[i + 6]) * piece_value[i];
 		}
-		return pos->whiteToMove ? m_white - m_black : m_black - m_white;
+
+		int eval_cap = pos->whiteToMove ? m_white - m_black : m_black - m_white;
+
+		int eval_pos = 0;
+
+		if (pos->whiteToMove)
+		{
+			uint64_t pawn = pos->pieceBoards[1];
+			while (pawn)
+			{
+				int p = long_bit_scan(pawn);
+				eval_pos += w_pawn_heatmap[p];
+				pawn &= pawn - 1;
+			}
+			uint64_t king = pos->pieceBoards[0];
+			while (king)
+			{
+				int k = long_bit_scan(king);
+				eval_pos += w_king_heatmap[k];
+				king &= king - 1;
+			}
+			uint32_t rook = pos->pieceBoards[4];
+			while (rook)
+			{
+				int r = long_bit_scan(rook);
+				eval_pos += w_rook_heatmap[r];
+				rook &= rook - 1;
+
+			}
+		}
+		else
+		{
+			uint64_t pawn = pos->pieceBoards[7];
+			while (pawn)
+			{
+				int p = long_bit_scan(pawn);
+				eval_pos += b_pawn_heatmap[p];
+				pawn &= pawn - 1;
+			}
+			uint64_t king = pos->pieceBoards[6];
+			while (king)
+			{
+				int k = long_bit_scan(king);
+				eval_pos += b_king_heatmap[k];
+				king &= king - 1;
+			}
+			uint32_t rook = pos->pieceBoards[10];
+			while (rook)
+			{
+				int r = long_bit_scan(rook);
+				eval_pos += w_rook_heatmap[r];
+				rook &= rook - 1;
+
+			}
+
+		}
+		return eval_cap * 5 + eval_pos;
 	}
+
+

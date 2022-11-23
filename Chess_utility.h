@@ -66,3 +66,18 @@ struct Position_list {
 		curr_pos = *_curr_pos;
 	};
 };
+
+
+struct Best_move_ {
+	uint32_t move;
+	int eval;
+	bool operator<(const Best_move_& other) const {
+		return eval < other.eval;
+	}
+	bool operator>(const Best_move_& other) const {
+		return eval > other.eval;
+	}
+	bool operator==(const Best_move_& other) const {
+		return eval == other.eval;
+	}
+};

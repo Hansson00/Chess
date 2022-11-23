@@ -38,6 +38,19 @@ void Chess::events() {
             case SDLK_BACKSPACE:
                 std::cout << hash_pos(&engine->pos)<< std::endl;
                 break;
+            case SDLK_4:
+                engine->player_make_move(engine->find_best_move_fokk(4, &engine->pos));
+                break;
+            case SDLK_5:
+                engine->player_make_move(engine->find_best_move_fokk(5, &engine->pos));
+                break;
+            case SDLK_6:
+                engine->player_make_move(engine->find_best_move_fokk(6, &engine->pos));
+                break;
+            case SDLK_7:
+                engine->player_make_move(engine->find_best_move_fokk(7, &engine->pos));
+                break;
+
             default:
                 break;
             }
@@ -47,6 +60,7 @@ void Chess::events() {
             running = false;
             break;
         default:
+            
             break;
         }
     }
@@ -102,8 +116,6 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                     case Engine::s_check: sound_manager->play_sound(sound_manager->check); break;
                     case Engine::s_checkmate: sound_manager->play_sound(sound_manager->checkmate); break;
                     }
-                    uint32_t move = engine->find_best_move(4, &engine->pos);
-                    engine->player_make_move(move);
                 }
                 /*
                 chagne_bitboards(held_piece, 0, held_piece_board);

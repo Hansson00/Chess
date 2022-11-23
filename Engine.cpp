@@ -69,6 +69,71 @@ uint64_t Engine::move_squares(uint16_t* moves, uint16_t* end) {
     return result;
 }
 
+uint32_t Engine::find_best_move_fokk(int depth, Position* pos)
+{
+    Move_list moves;
+    get_legal_moves(pos, &moves);
+    Position current = *pos;
+
+    std::priority_queue<Best_move_> queue = std::priority_queue<Best_move_>();
+
+    for (uint32_t* move = moves.start(); move < moves.end(); move++)
+    {
+        current.moves++;
+        make_move(&current, *move);
+        Best_move_ bm = { *move, -search_eval_fokk(depth - 1, &current) };
+        queue.push(bm);
+        undo_move(&current, pos);
+    }
+    perft_map.clear();
+    return queue.top().move;
+}
+
+int Engine::search_eval_fokk(int depth, Position* pos)
+{
+    if (depth == 0) {
+        return Evaluate(pos);
+    }
+
+    uint64_t hash;
+    if (depth > 1) {
+        hash = zobrist_hash(pos);
+        if (eval_map.find(hash) != eval_map.end()) {
+            return eval_map.at(hash);
+        }
+    }
+    Position current = *pos;
+
+    Move_list legal_moves;
+    get_legal_moves(&current, &legal_moves);
+
+    int best_move =  -999910-depth;
+
+    if (legal_moves.size() == 0)
+    {
+        if (pos->numCheckers > 0)
+            return -99999;
+        else
+            return 0;
+    }
+
+    for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
+        current.moves++;
+        make_move(&current, *move);
+        int curr_move = -search_eval_fokk(depth - 1, &current);
+
+        if (curr_move > best_move)
+            best_move = curr_move;
+
+        undo_move(&current, pos);
+    }
+
+    if (depth > 1) {
+        eval_map[hash] = best_move;
+    }
+    return best_move;
+}
+
 
 uint32_t Engine::find_best_move(int depth, Position* pos) {
     if (depth == 0)
@@ -284,6 +349,7 @@ uint64_t Engine::search(int depth, Position* pos) {
     for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
         current.moves++;
         make_move(&current, *move);
+        Evaluate(&current);
         num_positions += search(depth - 1, &current);
         undo_move(&current, pos);
     }

@@ -3,8 +3,8 @@ using namespace std;
 
 Engine::Engine() {
 
-    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
-    fenInit(&pos, "rk6/8/8/8/8/8/8/7K w -");
+    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    //fenInit(&pos, "rk6/8/8/8/8/8/8/7K w -");
 
     //fenInit(&pos, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
     //fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
@@ -135,7 +135,7 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
     get_legal_moves(pos, &moves);
 
     Position current = *pos;
-    int best_eval = -999999; //Initiate as worst eval
+    double best_eval = worst_eval; //Initiate as worst eval
     uint32_t best_move = moves.move_list[0];
 
     if (moves.size() == 0) {
@@ -145,7 +145,7 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         make_move(&current, *move);
 
-        int eval = -search_eval2(depth - 1, -999999 - depth, 999999 + depth, &current);
+        double eval = -search_eval2(depth - 1, worst_eval - depth, -worst_eval + depth, &current);
         parse_move(*move);
         cout << eval << endl;
 
@@ -166,11 +166,11 @@ int Engine::search_eval(int depth, Position* pos) {
     get_legal_moves(pos, &moves);
     if (moves.size() == 0) {
         if (pos->numCheckers > 0)
-            return -999999 - depth; //Checkmate
+            return worst_eval - depth; //Checkmate
         else
             return 0; //Stalemate
     }
-    int best_eval = -999999;
+    int best_eval = worst_eval;
     Position current = *pos;
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
@@ -183,14 +183,14 @@ int Engine::search_eval(int depth, Position* pos) {
     return best_eval;
 }
 
-int Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
+double Engine::search_eval2(int depth, double alpha, double beta, Position* pos) {
     if (depth == 0)
         return Evaluate(pos);
     Move_list moves;
     get_legal_moves(pos, &moves);
     if (moves.size() == 0) {
         if (pos->numCheckers > 0)
-            return -999999 - depth; //Checkmate
+            return worst_eval - depth; //Checkmate
         else
             return 0; //Stalemate
     }
@@ -198,7 +198,7 @@ int Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         make_move(&current, *move);
-        int eval = -search_eval2(depth - 1, -beta, -alpha, &current);
+        double eval = -search_eval2(depth - 1, -beta, -alpha, &current);
         undo_move(&current, pos);
         if (eval >= beta)
             return beta;

@@ -36,7 +36,7 @@ void Chess::events() {
                 engine->player_undo_move();
                 break;
             case SDLK_BACKSPACE:
-                std::cout << hash_pos(&engine->pos)<< std::endl;
+                window->flip = !window->flip;
                 break;
             case SDLK_1:
                 engine->player_make_move(engine->find_best_move_fokk(1, &engine->pos));
@@ -92,7 +92,7 @@ void Chess::draw() {
     window->draw_pieces(engine->pos.pieceBoards, held_piece_board);
     if (held_piece != 255) {
         window->draw_piece_at_mouse(held_piece);
-        window->draw_texture_at_square(engine->generate_held_piece_moves(held_piece, &(engine->pos),held_piece_board), window->legal_circle);
+        window->draw_texture_at_square(engine->generate_held_piece_moves(held_piece, &(engine->pos), held_piece_board), window->legal_circle);
     }
     //window->draw_eval_bar(eval_test);
     window->update();
@@ -105,8 +105,8 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
     window->mouse_grid_pos(&x, &y);
     if (button == 1) { // x and y is within the board
 
-        int tmp = (x + y * 8);
-        uint64_t mouse_pos = 1Ull << (x + y * 8);
+        int tmp = window->flip ? 63 - (x + y * 8) : (x + y * 8);
+        uint64_t mouse_pos = 1Ull << tmp;
 
         if (mouse_down && x < 8 && y < 8) { // Pick up piece
             for (int i = 0; i < 12; i++)

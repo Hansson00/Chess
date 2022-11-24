@@ -3,8 +3,9 @@ using namespace std;
 
 Engine::Engine() {
 
-    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
-    fenInit(&pos, "rk6/8/8/8/8/8/8/7K w -");
+    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    //fenInit(&pos, "7R/2R5/1p6/1k6/1P6/P6P/8/1K1r4 w");
+    //fenInit(&pos, "r6P/7k/8/8/8/8/8/P6K w -");
 
     //fenInit(&pos, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
     //fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
@@ -35,8 +36,6 @@ void Engine::get_legal_moves(Position* pos, Move_list* move_list) {
         filter_pins(move_list, pos);
     }
 }
-
-
 
 //Return the bitboard of moves for a given piece, used to draw move "dots"
 uint64_t Engine::generate_held_piece_moves(uint16_t p_type, Position* pos, uint64_t mask) {
@@ -79,6 +78,8 @@ uint32_t Engine::find_best_move_fokk(int depth, Position* pos)
         undo_move(&current, pos);
     }
     perft_map.clear();
+    cout << "Hash hits: " << hash_hits << endl;
+    hash_hits = 0;
     return queue.top().move;
 }
 
@@ -92,6 +93,7 @@ int Engine::search_eval_fokk(int depth, Position* pos)
     if (depth > 1) {
         hash = zobrist_hash(pos);
         if (eval_map.find(hash) != eval_map.end()) {
+            hash_hits++;
             return eval_map.at(hash);
         }
     }
@@ -100,18 +102,17 @@ int Engine::search_eval_fokk(int depth, Position* pos)
     Move_list legal_moves;
     get_legal_moves(&current, &legal_moves);
 
-    int best_move =  -999999+depth;
-
     if (legal_moves.size() == 0)
     {
         if (pos->numCheckers > 0)
-            return -99999+pos->moves;
+            return -99999 - depth;
         else
             return 0;
     }
 
+    int best_move = -999999 - depth;
+
     for (uint32_t* move = legal_moves.start(); move < legal_moves.end(); move++) {
-        current.moves++;
         make_move(&current, *move);
         int curr_move = -search_eval_fokk(depth - 1, &current);
 
@@ -127,7 +128,6 @@ int Engine::search_eval_fokk(int depth, Position* pos)
     return best_move;
 }
 
-
 uint32_t Engine::find_best_move(int depth, Position* pos) {
     if (depth == 0)
         return Evaluate(pos);
@@ -141,6 +141,8 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
     if (moves.size() == 0) {
         return 0;
     }
+
+    moves.sort();
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         make_move(&current, *move);
@@ -195,6 +197,8 @@ int Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
             return 0; //Stalemate
     }
     Position current = *pos;
+
+    moves.sort();
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         make_move(&current, *move);

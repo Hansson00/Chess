@@ -27,6 +27,7 @@ public:
 
 	uint32_t find_best_move_fokk(int depth, Position* pos);
 	int search_eval_fokk(int depth, Position* pos);
+	
 
 	std::unordered_map<uint64_t, int> eval_map;
 

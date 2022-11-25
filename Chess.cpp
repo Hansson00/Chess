@@ -39,13 +39,16 @@ void Chess::events() {
                 window->flip = !window->flip;
                 break;
             case SDLK_1:
-                engine->player_make_move(engine->find_best_move_fokk(1, &engine->pos));
+                engine->player_make_move(engine->find_best_move(11, &engine->pos));
+                play_sound();
                 break;
             case SDLK_2:
-                engine->player_make_move(engine->find_best_move_fokk(2, &engine->pos));
+                engine->player_make_move(engine->find_best_move(12, &engine->pos));
+                play_sound();
                 break;
             case SDLK_3:
-                engine->player_make_move(engine->find_best_move_fokk(3, &engine->pos));
+                engine->player_make_move(engine->find_best_move(3, &engine->pos));
+                play_sound();
                 break;
             case SDLK_4:
                 engine->player_make_move(engine->find_best_move(4, &engine->pos));
@@ -63,8 +66,16 @@ void Chess::events() {
                 engine->player_make_move(engine->find_best_move(7, &engine->pos));
                 play_sound();
                 break;
-            case SDLK_0:
+            case SDLK_8:
+                engine->player_make_move(engine->find_best_move(8, &engine->pos));
+                play_sound();
+                break;
+            case SDLK_9:
                 engine->player_make_move(engine->find_best_move(9, &engine->pos));
+                play_sound();
+                break;
+            case SDLK_0:
+                engine->player_make_move(engine->find_best_move(10, &engine->pos));
                 play_sound();
                 break;
             default:

@@ -39,6 +39,41 @@ struct Move_list {
 	uint32_t* end() { return last; };
 	uint32_t size() { return (uint32_t)(end() - start()); }
 
+	void sort() {
+		move_list;
+
+		uint32_t* sort_left = start();
+		uint32_t* sort_right = end();
+		
+
+		while (sort_left != sort_right)
+		{
+			while (sort_left != sort_right)
+			{
+				uint16_t flag = flags(*sort_left);
+				if (flag & 4)
+					sort_left++;
+				else
+					break;
+
+			}
+			while (sort_left != sort_right)
+			{
+				uint16_t flag = flags(*sort_right);
+				if (flag & 4)
+					break;
+				else
+					sort_right--;
+			}
+			if (sort_left != sort_right)
+			{
+				uint32_t temp = *sort_right;
+				*sort_right = *sort_left;
+				*sort_left = temp;
+			}
+		}
+	}
+
 	uint32_t contains(const uint32_t move) {
 		for (uint32_t* i = start(); i < end(); i++) {
 			if ((*i & 0xFFF) == move)
@@ -54,7 +89,7 @@ struct Move_list {
 	uint16_t to_sq(const uint32_t move) const { return (uint32_t)(move & 0x3F); }
 	uint16_t from_sq(const uint32_t move) const { return uint32_t((move >> 6) & 0x3F); }
 	uint16_t flags(const uint32_t move) const { return (uint16_t)(move >> 12); }
-	uint32_t move_list[100];
+	uint32_t move_list[100] = {};
 	uint32_t* last = move_list; //60 should be enough space for all moves
 };
 

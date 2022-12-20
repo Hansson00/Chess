@@ -39,7 +39,7 @@ void Chess::events() {
                 std::cout << hash_pos(&engine->pos)<< std::endl;
                 break;
             case SDLK_1:
-                engine->player_make_move(engine->find_best_move(11, &engine->pos));
+                engine->player_make_move(generate_moves(engine->pos));
                 play_sound();
                 break;
             case SDLK_2:
@@ -169,7 +169,6 @@ void Chess::play_sound() {
     }
 }
 
-
 void Chess::chagne_bitboards(uint32_t p, uint64_t add, uint64_t remove) {
 
     if (add > 0) {
@@ -209,6 +208,9 @@ void Chess::command_promt() {
         else if (std::strcmp(str.c_str(), "perft 6") == 0) { compare_perft(6, 3048196529); }
         else if (std::strcmp(str.c_str(), "perft 7") == 0) { compare_perft(7, 3195901860); }
         else if (std::strcmp(str.c_str(), "perft 8") == 0) { compare_perft(8, 84998978956); }
+        else if (std::strcmp(str.c_str(), "moves") == 0) { engine->op->find_book_move(&engine->pos); }
+        else if (std::strcmp(str.c_str(), "hash") == 0) { std::cout << std::hex << engine->op->hash_funciton(&engine->pos) << std::endl; }
+        //else if (std::strcmp(str.c_str(), "hash2") == 0) { std::cout << std::hex << engine->zobrist_hash(&engine->pos) << std::endl; }
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> diff = end - start;
         std::cout << "Time:" << diff.count() << std::endl;
@@ -226,8 +228,6 @@ void Chess::compare_perft(int depth, int64_t positions) {
     else {
         std::cout << std::abs(positions- perft) << " incorrect\n" << std::endl;
     }
-
-
 }
 
 static std::string get_input(bool* bl) {
@@ -235,4 +235,38 @@ static std::string get_input(bool* bl) {
     std::getline(std::cin, answer);
     *bl = true;
     return answer;
+}
+
+uint32_t Chess::generate_moves(const Position& pos)
+{
+    using namespace std::chrono;
+    auto clock = steady_clock::now();
+    uint32_t deepest = -999999;
+    bool done = false;
+    bool run = true;
+    int depth = 6;
+    std::future<uint32_t> future = std::async(std::launch::async, &Chess::_generate_moves_wrapper, this, pos, depth, &done, &run);
+
+    while (duration_cast<seconds>(steady_clock::now() - clock).count() < 10)
+    {
+        if (done)
+        {
+            std::cout << "Depth " << depth << " done." << std::endl;
+            deepest = future.get();
+            done = false;
+            depth++;
+            future = std::async(std::launch::async, &Chess::_generate_moves_wrapper, this, pos, depth, &done, &run);
+        }
+    }
+    run = false;
+    std::cout << "Finished at a depth of: " << depth - 1 << std::endl << std::endl;
+    return deepest;
+
+}
+
+uint32_t Chess::_generate_moves_wrapper(const Position& pos, int depth, bool* done, bool* run)
+{
+    uint32_t eval = engine->find_best_move_th(depth, &engine->pos, run);
+    *done = true;
+    return eval;
 }

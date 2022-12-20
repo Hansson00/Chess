@@ -3,8 +3,8 @@ using namespace std;
 
 Engine::Engine() {
 
-    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
-    //fenInit(&pos, "7R/2R5/1p6/1k6/1P6/P6P/8/1K1r4 w");
+    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+    fenInit(&pos, "Q7/p1p1q1pk/3p2rp/4n3/3bP3/7b/PP3PPK/R1B2R2 b - - 0 1");
     //fenInit(&pos, "r6P/7k/8/8/8/8/8/P6K w -");
 
     //fenInit(&pos, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
@@ -185,7 +185,7 @@ int Engine::search_eval(int depth, Position* pos) {
     return best_eval;
 }
 
-double Engine::search_eval2(int depth, double alpha, double beta, Position* pos) {
+double Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
     if (depth == 0)
         return Evaluate(pos);
     Move_list moves;
@@ -202,7 +202,7 @@ double Engine::search_eval2(int depth, double alpha, double beta, Position* pos)
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         make_move(&current, *move);
-        double eval = -search_eval2(depth - 1, -beta, -alpha, &current);
+        int eval = -search_eval2(depth - 1, -beta, -alpha, &current);
         undo_move(&current, pos);
         if (eval >= beta)
             return beta;

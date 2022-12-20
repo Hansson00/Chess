@@ -11,7 +11,7 @@
 
 uint64_t hash_pos(Position* pos);
 
-class Engine : private Move_Generator {
+class Engine : private Evaluation {
 
 public:
 	Engine();
@@ -57,7 +57,7 @@ public:
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
-	double search_eval2(int depth, double alpha, double beta, Position* pos);
+	double search_eval2(int depth, int alpha, int beta, Position* pos);
 	int search_eval(int depth, Position* pos);
 	uint32_t find_best_move(int depth, Position* pos);
 	uint64_t perft(int depth, Position* pos);

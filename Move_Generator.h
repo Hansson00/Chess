@@ -18,6 +18,8 @@ public:
 	void generate_queen_moves(Move_list* move_list, Position* pos);
 	void generate_rook_moves(Move_list* move_list, Position* pos);
 	void generate_sliding_moves(Move_list* move_list, uint64_t board, uint64_t moves, uint32_t piece);
+	
+	uint64_t king_attacks[64];
 
 protected:
 	void add_promotion(Move_list* move_list, uint32_t move);
@@ -31,13 +33,12 @@ protected:
 	uint64_t queen_attacks(uint64_t board, int queen_pos);
 	void init_knight_attacks();
 	void init_king_attacks();
-	uint64_t king_attacks[64];
 	
 	uint64_t file_attacks(uint64_t board, int rook_pos);
 	uint64_t rank_attacks(uint64_t board, int rook_pos);
-	uint64_t files[8] = { 0x0101010101010101LL, 0x0202020202020202LL, 0x0404040404040404LL,
-		0x0808080808080808LL, 0x1010101010101010LL, 0x2020202020202020LL, 0x4040404040404040LL,
-		0x8080808080808080LL };
+	uint64_t files[8] = { 0x0101010101010101ULL, 0x0202020202020202ULL, 0x0404040404040404ULL,
+		0x0808080808080808ULL, 0x1010101010101010ULL, 0x2020202020202020ULL, 0x4040404040404040ULL,
+		0x8080808080808080ULL };
 	uint64_t ranks[8] = { 0xFFLL, 0xFF00LL, 0xFF0000LL, 0xFF000000LL, 0xFF00000000LL, 0xFF0000000000LL,
 			0xFF000000000000LL, 0xFF00000000000000LL };
 	uint64_t main_diagonals[15] = { 0x0100000000000000ULL, 0x0201000000000000ULL, 0x0402010000000000ULL, 0x0804020100000000ULL,

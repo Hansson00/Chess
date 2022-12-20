@@ -7,6 +7,8 @@
 #include "future"
 #include "chrono"
 #include "Evaluation.h"
+#include "future"
+#include "Opening_book.h"
 
 static std::string get_input(bool* bl);
 
@@ -20,8 +22,8 @@ public:
 private:
 	//for test!!
 	double eval_test = -6.235;
-
-
+	uint32_t generate_moves(const Position& pos);
+	uint32_t _generate_moves_wrapper(const Position& pos, int depth, bool* done, bool* run);
 
 	Sound_Manager* sound_manager;
 	Window* window;

@@ -8,6 +8,7 @@
 #include "random"
 #include "Evaluation.h"
 #include "queue"
+#include "Opening_book.h"
 
 uint64_t hash_pos(Position* pos);
 
@@ -24,15 +25,9 @@ public:
 
 	uint64_t zobrist_hash(Position* pos);
 	void init_hashtable(Position* pos);
-
-	uint32_t find_best_move_fokk(int depth, Position* pos);
-	int search_eval_fokk(int depth, Position* pos);
 	
-
 	std::unordered_map<uint64_t, int> eval_map;
-
 	std::unordered_map<uint64_t, uint64_t> perft_map;
-	
 
 	std::string perft_out = "";
 
@@ -44,6 +39,8 @@ public:
 		s_checkmate
 	};
 	Sound sound;
+
+	Opening_book* op;
 
 	uint32_t hash_hits = 0;
 
@@ -60,6 +57,12 @@ public:
 	double search_eval2(int depth, int alpha, int beta, Position* pos);
 	int search_eval(int depth, Position* pos);
 	uint32_t find_best_move(int depth, Position* pos);
+
+	uint32_t find_best_move_th(int depth, Position* pos, bool* run);
+	int search_eval2_th(int depth, int alpha, int beta, Position* pos, bool* run);
+
+
+
 	uint64_t perft(int depth, Position* pos);
 	void _perft_debug(int depth, Position* pos);
 	uint64_t search(int depth, Position* pos);

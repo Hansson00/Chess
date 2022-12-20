@@ -24,6 +24,7 @@ public:
 	SDL_Texture* legal_circle;
 	SDL_Texture* attack_square;
 	SDL_Texture* move_square;
+	bool flip = false;
 
 private:
 

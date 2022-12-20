@@ -67,7 +67,7 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
     get_legal_moves(pos, &moves);
 
     Position current = *pos;
-    int best_eval = -999999; //Initiate as worst eval
+    double best_eval = worst_eval; //Initiate as worst eval
     uint32_t best_move = moves.move_list[0];
 
     if (moves.size() == 0) {
@@ -79,9 +79,9 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         make_move(&current, *move);
 
-        int eval = -search_eval2(depth - 1, -999999 - depth, 999999 + depth, &current);
-        //parse_move(*move);
-        //cout << eval << endl;
+        double eval = -search_eval2(depth - 1, worst_eval - depth, -worst_eval + depth, &current);
+        parse_move(*move);
+        cout << eval << endl;
 
         if (eval > best_eval) {
             best_move = *move;
@@ -100,11 +100,11 @@ int Engine::search_eval(int depth, Position* pos) {
     get_legal_moves(pos, &moves);
     if (moves.size() == 0) {
         if (pos->numCheckers > 0)
-            return -999999 - depth; //Checkmate
+            return worst_eval - depth; //Checkmate
         else
             return 0; //Stalemate
     }
-    int best_eval = -999999;
+    int best_eval = worst_eval;
     Position current = *pos;
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
@@ -117,14 +117,14 @@ int Engine::search_eval(int depth, Position* pos) {
     return best_eval;
 }
 
-int Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
+double Engine::search_eval2(int depth, double alpha, double beta, Position* pos) {
     if (depth == 0)
         return Evaluate(pos);
     Move_list moves;
     get_legal_moves(pos, &moves);
     if (moves.size() == 0) {
         if (pos->numCheckers > 0)
-            return -999999 - depth; //Checkmate
+            return worst_eval - depth; //Checkmate
         else
             return 0; //Stalemate
     }
@@ -134,7 +134,7 @@ int Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
 
     for (uint32_t* move = moves.start(); move < moves.end(); move++) {
         make_move(&current, *move);
-        int eval = -search_eval2(depth - 1, -beta, -alpha, &current);
+        double eval = -search_eval2(depth - 1, -beta, -alpha, &current);
         undo_move(&current, pos);
         if (eval >= beta)
             return beta;

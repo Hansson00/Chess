@@ -54,7 +54,7 @@ public:
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
 
-	int search_eval2(int depth, int alpha, int beta, Position* pos);
+	double search_eval2(int depth, double alpha, double beta, Position* pos);
 	int search_eval(int depth, Position* pos);
 	uint32_t find_best_move(int depth, Position* pos);
 
@@ -86,6 +86,8 @@ private:
 	uint64_t move_hash;
 	uint64_t ep_hash[8];
 	uint64_t castle_hash[4];
+
+	const double worst_eval = -999999;
 
 
 };

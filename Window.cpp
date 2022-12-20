@@ -41,13 +41,14 @@ void Window::draw_pieces(uint64_t* bit_board, uint64_t mask) {
 		uint64_t p = bit_board[i];
 		p &= ~mask;
 		while (p) {
-			uint32_t index = long_bit_scan(p);
+			uint32_t index = flip ? 63 - long_bit_scan(p) : long_bit_scan(p);
 			rect.x = index % 8 * rect.w + padding;
 			rect.y = index / 8 * rect.w + padding;
 			SDL_RenderCopy(renderer, pieces[i], NULL, &rect);
 			p &= p - 1;
 		}
 	}
+
 }
 
 void Window::draw_board() {
@@ -83,7 +84,7 @@ void Window::draw_piece_at_mouse(int piece) {
 
 void Window::draw_texture_at_square(uint64_t squares, SDL_Texture* texture) {
 	while (squares) {
-		int square = long_bit_scan(squares);
+		int square = flip ? 63 - long_bit_scan(squares) : long_bit_scan(squares);
 		int x = (square % 8) * piece_size + padding;
 		int y = (square / 8) * piece_size + padding;
 		SDL_Rect rect = { x+1, y+1,  118 , 118 };

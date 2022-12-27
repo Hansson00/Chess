@@ -66,7 +66,7 @@ public:
 	uint64_t perft(int depth, Position* pos);
 	void _perft_debug(int depth, Position* pos);
 	uint64_t search(int depth, Position* pos);
-	void parse_move(uint16_t move);
+
 private:
 
 	void in_check_masks(Position* pos, bool white_in_check);

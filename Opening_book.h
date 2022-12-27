@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <intrin.h>
+#include <vector>
 #include "Chess_utility.h"
 
 #ifdef _MSC_VER
@@ -16,10 +18,10 @@
 using uint64 = unsigned long long;
 
 typedef struct S_BOOK_ENTRY {
-	unsigned long long key;
-	unsigned short move;
-	unsigned short weight;
-	unsigned int learn;
+	uint64_t key;
+	uint16_t move;
+	uint16_t weight;
+	uint32_t learn;
 };
 
 
@@ -41,7 +43,7 @@ public:
 	*/
 	uint64 hash_funciton(const Position* pos) const;
 
-	void find_book_move(const Position* pos) const;
+	uint16_t find_book_move(const Position* pos) const;
 
 private:
 	/* Used to translate our piece intex to the books */

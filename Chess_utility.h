@@ -26,6 +26,9 @@ struct Position {
 		return -1;
 	}
 };
+
+
+void parse_move(uint16_t);
 uint32_t bit_scan(uint32_t);
 uint32_t long_bit_scan(uint64_t);
 uint32_t high_bit_scan(int32_t i);
@@ -80,6 +83,15 @@ struct Move_list {
 				return *i; //Return the move with its flags
 		}
 		return 0; //Move not found
+	}
+	const bool book_castle(const uint16_t move, const uint64_t king_board) {
+		const int to_sq = move & 0x3F;
+		const int from_sq = (move >> 6) & 0x3F;
+		const int dist = abs(to_sq - from_sq);
+		if (dist == 3 || dist == 4) {
+			return king_board & (1ULL << from_sq);
+		}
+		return false;
 	}
 	~Move_list() {
 		//delete(move_list);

@@ -137,6 +137,8 @@ void Chess::mouse_event(uint8_t button, bool mouse_down) {
                 if (real_move != 0) {
                     engine->player_make_move(real_move);
                     play_sound();
+                    //engine->player_make_move(engine->find_best_move(6, &engine->pos));
+                    //play_sound();
                 }
                 /*
                 chagne_bitboards(held_piece, 0, held_piece_board);

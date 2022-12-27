@@ -63,9 +63,23 @@ uint64_t Engine::generate_held_piece_moves(uint16_t p_type, Position* pos, uint6
 uint32_t Engine::find_best_move(int depth, Position* pos) {
     if (depth == 0)
         return Evaluate(pos);
+    uint16_t book_move = op->find_book_move(pos);
+    
     Move_list moves;
     get_legal_moves(pos, &moves);
-
+    //Get move with flags from legal moves array
+    if (book_move) {
+        //Castling moves have wierd notation because of chess 960
+        const int king = pos->whiteToMove ? 0 : 6;
+        if (moves.book_castle(book_move, pos->pieceBoards[king])) {
+            //Change to correct to square
+            if ((book_move & 0x3F) % 8 == 0)
+                book_move += 2;
+            else
+                book_move -= 1;
+        }
+        return moves.contains(book_move & 0xFFF);
+    }
     Position current = *pos;
     double best_eval = worst_eval; //Initiate as worst eval
     uint32_t best_move = moves.move_list[0];
@@ -380,20 +394,7 @@ uint64_t Engine::search(int depth, Position* pos) {
     return num_positions;
 }
 
-void Engine::parse_move(uint16_t move) {
-    int from = (move >> 6) & 0x3F;
-    int to = move & 0x3F;
-    cout << (char)(from % 8 + 'a') << (char)('8' - from / 8)
-        << (char)('a' + to % 8) << (char)('8' - to / 8) << ": ";
 
-    perft_out += (char)(from % 8 + 'a');
-    perft_out += (char)('8' - from / 8);
-    perft_out += (char)('a' + to % 8);
-    perft_out += (char)('8' - to / 8);
-    perft_out += ": ";
-
-
-}
 
 ////NOT FINISHED
 //Use this to replace function in window moving the pieces
@@ -536,9 +537,21 @@ void Engine::update_attack(Position* pos) {
 
 void Engine::player_make_move(const uint32_t move) {
     move_highlight = move & 0xFFFF;
+
     make_move(&pos, move);
     p_list = new Position_list(p_list, &pos);
     pos = p_list->curr_pos;
+    Move_list next;
+    get_legal_moves(&pos, &next);
+    if (next.size() == 0) {
+        if (pos.numCheckers > 0) {
+            sound = s_checkmate;
+            std::cout << "Checkmate" << std::endl;
+        }
+        else
+            std::cout << "Stalemate" << std::endl;
+        return;
+    }
 }
 
 void Engine::player_undo_move() {

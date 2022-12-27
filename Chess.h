@@ -7,7 +7,6 @@
 #include "future"
 #include "chrono"
 #include "Evaluation.h"
-#include "future"
 #include "Opening_book.h"
 
 static std::string get_input(bool* bl);

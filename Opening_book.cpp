@@ -3,7 +3,7 @@
 Opening_book::Opening_book()
 {
 
-	FILE* pFile = fopen("Human.bin", "rb");
+	FILE* pFile = fopen("gm2600.bin", "rb");
 	
 	if (pFile == NULL) 
 	{
@@ -25,6 +25,22 @@ Opening_book::Opening_book()
 		rewind(pFile);
 		fread(entries, sizeof(S_BOOK_ENTRY), num_entries, pFile);
 		
+		for (int i = 0; i < num_entries; i++) {
+			//Swap endian format
+			S_BOOK_ENTRY* entry = &entries[i];
+			entry->key = _byteswap_uint64(entry->key);
+			entry->move = _byteswap_ushort(entry->move);
+			entry->weight = _byteswap_ushort(entry->weight);
+			entry->learn = _byteswap_ulong(entry->learn);
+			//Restructure the move to be encoded as ours
+			//TODO: fix castling moves
+			uint16_t move = entry->move;
+			uint16_t to_sq = (move & 0x7) + (7 - ((move >> 3) & 0x7)) * 8;
+			uint16_t from_sq = ((move >> 6) & 0x7) + (7 - ((move >> 9) & 0x7)) * 8;
+			uint16_t flags = move >> 12 == 0 ? 0 : 0x8000 | (move >> 12);
+			uint16_t our_move = to_sq | (from_sq << 6) | flags;
+			entry->move = our_move;
+		}
 	}
 }
 
@@ -71,21 +87,28 @@ uint64 Opening_book::hash_funciton(const Position* pos) const
 	return final_key;
 }
 
-void Opening_book::find_book_move(const Position* pos) const{
+uint16_t Opening_book::find_book_move(const Position* pos) const{
 	
 	uint64 p_key = hash_funciton(pos);
 	int start = 0;
 	S_BOOK_ENTRY* entry;
-	unsigned short move;
-
+	uint16_t move;
+	std::vector<uint16_t> book_moves;
 	for (entry = entries; entry < entries + num_entries; entry++)
 	{
 		if (p_key == entry->key)
 		{
-			move = entry->move;
-			std::cout << move << std::endl;
+			//TODO: take a random one of the suggested moves
+			book_moves.push_back(entry->move);
 		}
 	}
+
+	if (book_moves.size()) {
+		srand(time(NULL));
+		return book_moves[rand() % book_moves.size()];
+	}
+		
+	return 0;
 
 }
 

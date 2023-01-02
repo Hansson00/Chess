@@ -3,7 +3,7 @@
 Opening_book::Opening_book()
 {
 
-	FILE* pFile = fopen("gm2600.bin", "rb");
+	FILE* pFile = fopen("Performance.bin", "rb");
 	
 	if (pFile == NULL) 
 	{
@@ -107,7 +107,6 @@ uint16_t Opening_book::find_book_move(const Position* pos) const{
 		srand(time(NULL));
 		return book_moves[rand() % book_moves.size()];
 	}
-		
 	return 0;
 
 }

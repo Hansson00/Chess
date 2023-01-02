@@ -40,7 +40,7 @@ public:
 	};
 	Sound sound;
 
-	Opening_book* op;
+	Opening_book* ob;
 
 	uint32_t hash_hits = 0;
 

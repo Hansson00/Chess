@@ -210,8 +210,8 @@ void Chess::command_promt() {
         else if (std::strcmp(str.c_str(), "perft 6") == 0) { compare_perft(6, 3048196529); }
         else if (std::strcmp(str.c_str(), "perft 7") == 0) { compare_perft(7, 3195901860); }
         else if (std::strcmp(str.c_str(), "perft 8") == 0) { compare_perft(8, 84998978956); }
-        else if (std::strcmp(str.c_str(), "moves") == 0) { engine->op->find_book_move(&engine->pos); }
-        else if (std::strcmp(str.c_str(), "hash") == 0) { std::cout << std::hex << engine->op->hash_funciton(&engine->pos) << std::endl; }
+        else if (std::strcmp(str.c_str(), "moves") == 0) { engine->ob->find_book_move(&engine->pos); }
+        else if (std::strcmp(str.c_str(), "hash") == 0) { std::cout << std::hex << engine->ob->hash_funciton(&engine->pos) << std::endl; }
         //else if (std::strcmp(str.c_str(), "hash2") == 0) { std::cout << std::hex << engine->zobrist_hash(&engine->pos) << std::endl; }
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> diff = end - start;

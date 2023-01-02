@@ -10,7 +10,7 @@ Engine::Engine() {
     //rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2;
 
     init_hashtable(&pos);
-    op = new Opening_book();
+    ob = new Opening_book();
 
 }
 
@@ -63,7 +63,7 @@ uint64_t Engine::generate_held_piece_moves(uint16_t p_type, Position* pos, uint6
 uint32_t Engine::find_best_move(int depth, Position* pos) {
     if (depth == 0)
         return Evaluate(pos);
-    uint16_t book_move = op->find_book_move(pos);
+    uint16_t book_move = ob->find_book_move(pos);
     
     Move_list moves;
     get_legal_moves(pos, &moves);

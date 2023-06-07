@@ -6,8 +6,8 @@ Engine::Engine() {
     //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     //fenInit(&pos, "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2");
     //fenInit(&pos, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
-    //fenInit(&pos, "rnbqkbnr/p1pppppp/8/8/P6P/R1p5/1P1PPPP1/1NBQKBNR b Kkq - 0 4");
-    fenInit(&pos, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+    fenInit(&pos, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -");
+    //fenInit(&pos, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
 
     init_hashtable(&pos);
     op = new Opening_book();
@@ -535,8 +535,9 @@ void Engine::update_attack2(Position* pos) {
         //Get surrounding king squares
         const uint64_t king = pos->pieceBoards[0];
         uint64_t king_squares = king_proximity[long_bit_scan(king)];
+
         //Remove squares attacked by knights pawns and other king
-        //king_squares &= ~king_attacks[long_bit_scan(pos->pieceBoards[6])];
+        king_squares &= ~king_attacks[long_bit_scan(pos->pieceBoards[6])];
         king_squares &= ~(shift<SOUTH_EAST>(pos->pieceBoards[7]) |
             shift<SOUTH_WEST>(pos->pieceBoards[7]));
         king_squares &= ~piece_attacks<Knight>(0, pos->pieceBoards[8]);
@@ -554,7 +555,6 @@ void Engine::update_attack2(Position* pos) {
             const bool rook = piece_attacking<Rook>(board_without_king, slider) & (pos->pieceBoards[10] | pos->pieceBoards[11]);
             const bool bishop = piece_attacking<Bishop>(board_without_king, slider) & (pos->pieceBoards[9] | pos->pieceBoards[11]);
             king_squares &= (~0ULL * !(rook || bishop)) | ~(1ULL << slider); //No change if there is no rooks or queens
-            print_bit_board(king_squares);
             iter_king_squares &= iter_king_squares - 1;
         }
         pos->king_squares = king_squares;
@@ -568,7 +568,7 @@ void Engine::update_attack2(Position* pos) {
         const uint64_t king = pos->pieceBoards[6];
         uint64_t king_squares = king_proximity[long_bit_scan(king)];
         //Remove squares attacked by knights pawns and other king
-        //king_squares &= ~king_attacks[long_bit_scan(pos->pieceBoards[0])];
+        king_squares &= ~king_attacks[long_bit_scan(pos->pieceBoards[0])];
         king_squares &= ~(shift<NORTH_EAST>(pos->pieceBoards[1]) |
             shift<NORTH_WEST>(pos->pieceBoards[1]));
         king_squares &= ~piece_attacks<Knight>(0, pos->pieceBoards[2]);
@@ -738,7 +738,7 @@ void Engine::in_check_masks2(Position* pos) { //TODO: find pins at the same time
     const uint64_t king  = pos->pieceBoards[king_id];
     const uint32_t king_pos = long_bit_scan(king);
     const uint64_t board = pos->teamBoards[0];
-    const uint64_t pawnCheck = (shift<pawnLeft>(king) | shift<pawnLeft>(king))
+    const uint64_t pawnCheck = (shift<pawnLeft>(king) | shift<pawnRight>(king))
                                 & pos->pieceBoards[1 + offset];
     const uint64_t knightCheck = piece_attacking<Knight>(0, king_pos) & pos->pieceBoards[2 + offset];
     const uint64_t bishopCheck = piece_attacking<Bishop>(board, king_pos) & 
@@ -812,6 +812,65 @@ void Engine::in_check_masks(Position* pos, bool white_in_check) {
     }
     pos->block_check = block;
     pos->checker = checker == 0 ? ~0ULL : checker;
+}
+
+
+template<bool whiteToMove>
+void Engine::en_passant2(Position* pos, int pushedPawn) {
+    pos->enPassant = 0xFF;
+    if constexpr (whiteToMove) {
+        //If no black pawns present on 5th rank then no en passant possible
+        if ((pos->pieceBoards[7] & 0xFF00000000L) == 0)
+            return;
+        uint64_t sliders = pos->pieceBoards[4] | pos->pieceBoards[5];
+        if ((sliders & 0xFF00000000L) > 0) {
+            uint64_t slideAttack = piece_attacks<Rank>(pos->teamBoards[0], sliders);
+            uint64_t kingAttack = piece_attacks<Rank>(pos->teamBoards[0], pos->pieceBoards[6]);
+            uint64_t pawnPos = 1ULL << pushedPawn;
+            //If either the king or sliders see the en passant pawn then a possible pin is there
+            if ((slideAttack & pawnPos) != 0) {
+                //If the king sees the piece next to the pawn then there is no en passant available
+                if ((kingAttack & (pawnPos >> 1)) != 0 || (kingAttack & (pawnPos << 1)) != 0) {
+                    return;
+                }
+            }
+            else if ((kingAttack & pawnPos) != 0) {
+                //If the slider sees pawn next to pushed pawn then no en passant available
+                if ((slideAttack & (pawnPos >> 1)) != 0 || (slideAttack & (pawnPos << 1)) != 0) {
+                    return;
+                }
+            }
+        }
+    }
+    if constexpr (!whiteToMove) {
+        //If no white pawns present on 4th rank then no en passant possible
+        if ((pos->pieceBoards[1] & 0xFF000000L) == 0)
+            return;
+        uint64_t sliders = pos->pieceBoards[10] | pos->pieceBoards[11];
+        //If any of the slider occupy the forth rank then we need to check for pin
+        if ((sliders & 0xFF000000L) > 0) {
+            uint64_t slideAttack = piece_attacks<Rank>(pos->teamBoards[0], sliders);
+            uint64_t kingAttack = piece_attacks<Rank>(pos->teamBoards[0], pos->pieceBoards[0]);
+            uint64_t pawnPos = 1ULL << pushedPawn;
+            //If either the king or sliders see the en passant pawn then a possible pin is there
+            if ((slideAttack & pawnPos) != 0) {
+                //If the king sees the piece next to the pawn then there is no en passant available
+                if ((kingAttack & (pawnPos >> 1)) != 0 || (kingAttack & (pawnPos << 1)) != 0) {
+                    return;
+                }
+            }
+            else if ((kingAttack & pawnPos) != 0) {
+                //If the slider sees pawn next to pushed pawn then no en passant available
+                if ((slideAttack & (pawnPos >> 1)) != 0 || (slideAttack & (pawnPos << 1)) != 0) {
+                    return;
+                }
+            }
+        }
+    }
+    constexpr int plus = whiteToMove ? 8 : -8;
+    int pseudo = pushedPawn + plus;
+    //Stores both real pawn and pseudoPawn
+    pos->enPassant = (pushedPawn << 8) | pseudo;
 }
 
 void Engine::en_passant(Position* pos, int pushedPawn) {

@@ -22,16 +22,7 @@ enum Piece {
 	AntiD,
 };
 
-enum Direction {
-	NORTH,
-	SOUTH,
-	WEST,
-	EAST,
-	NORTH_WEST,
-	NORTH_EAST,
-	SOUTH_WEST,
-	SOUTH_EAST
-};
+
 
 class Move_Generator {
 public:
@@ -88,24 +79,6 @@ protected:
 	
 	uint64_t file_attacks(uint64_t board, int rook_pos);
 	uint64_t rank_attacks(uint64_t board, int rook_pos);
-	
-	static constexpr uint64_t FileA = 0x0101010101010101ULL;
-	static constexpr uint64_t FileB = FileA << 1;
-	static constexpr uint64_t FileC = FileA << 2;
-	static constexpr uint64_t FileD = FileA << 3;
-	static constexpr uint64_t FileE = FileA << 4;
-	static constexpr uint64_t FileF = FileA << 5;
-	static constexpr uint64_t FileG = FileA << 6;
-	static constexpr uint64_t FileH = FileA << 7;
-
-	static constexpr uint64_t Rank1 = 0xFF;
-	static constexpr uint64_t Rank2 = Rank1 << (8 * 1);
-	static constexpr uint64_t Rank3 = Rank1 << (8 * 2);
-	static constexpr uint64_t Rank4 = Rank1 << (8 * 3);
-	static constexpr uint64_t Rank5 = Rank1 << (8 * 4);
-	static constexpr uint64_t Rank6 = Rank1 << (8 * 5);
-	static constexpr uint64_t Rank7 = Rank1 << (8 * 6);
-	static constexpr uint64_t Rank8 = Rank1 << (8 * 7);
 
 
 	uint64_t files[8] = { 0x0101010101010101ULL, 0x0202020202020202ULL, 0x0404040404040404ULL,
@@ -121,15 +94,6 @@ protected:
 			0x2040800000000000ULL, 0x4080000000000000ULL, 0x8000000000000000ULL };
 	uint64_t lower_bits[64];
 	uint64_t upper_bits[64];
-	template<Direction D>
-	constexpr uint64_t shift(uint64_t b) {
-		return  D == NORTH ? b >> 8 : D == SOUTH ? b << 8
-			: D == NORTH + NORTH ? b >> 16 : D == SOUTH + SOUTH ? b << 16
-			: D == EAST ? (b & ~files[7]) << 1 : D == WEST ? (b & ~files[0]) >> 1
-			: D == NORTH_EAST ? (b & ~files[7]) >> 7 : D == NORTH_WEST ? (b & ~files[0]) >> 9
-			: D == SOUTH_EAST ? (b & ~files[7]) << 9 : D == SOUTH_WEST ? (b & ~files[0]) << 7
-			: 0;
-	}
 
 private:
 

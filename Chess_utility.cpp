@@ -98,5 +98,5 @@ void parse_move(uint16_t move) {
 	int from = (move >> 6) & 0x3F;
 	int to = move & 0x3F;
 	std::cout << (char)(from % 8 + 'a') << (char)('8' - from / 8)
-		<< (char)('a' + to % 8) << (char)('8' - to / 8) << std::endl;
+		<< (char)('a' + to % 8) << (char)('8' - to / 8) << ": ";
 }

@@ -62,8 +62,8 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 
 	
 
-	uint64_t push = Move_Generator::shift<up>(non_promoting) & non_occupied;
-	uint64_t double_push = Move_Generator::shift<up>(push & start_pawns) & non_occupied; //Where pawns that are able to move twice will be after one push
+	uint64_t push = shift<up>(non_promoting) & non_occupied;
+	uint64_t double_push = shift<up>(push & start_pawns) & non_occupied; //Where pawns that are able to move twice will be after one push
 
 	if constexpr (type == EVASIONS) {
 		
@@ -84,8 +84,8 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 		double_push &= double_push - 1;
 	}
 
-	uint64_t pawn_left = Move_Generator::shift<cap_left>(non_promoting) & opponent;
-	uint64_t pawn_right = Move_Generator::shift<cap_right>(non_promoting) & opponent;
+	uint64_t pawn_left = shift<cap_left>(non_promoting) & opponent;
+	uint64_t pawn_right = shift<cap_right>(non_promoting) & opponent;
 	if constexpr (type == EVASIONS) {
 		pawn_left &= checker;
 		pawn_right &= checker;
@@ -107,9 +107,9 @@ void Move_Generator::generate_pawn_moves(Move_list* move_list, Position* pos) {
 	
 
 	if (promoting != 0) {
-		uint64_t promoPush		= Move_Generator::shift<up		 >(promoting) & non_occupied;
-		uint64_t promoCapLeft	= Move_Generator::shift<cap_left >(promoting & ~FileA) & opponent;
-		uint64_t promoCapRight	= Move_Generator::shift<cap_right>(promoting & ~FileH) & opponent;
+		uint64_t promoPush		= shift<up		 >(promoting) & non_occupied;
+		uint64_t promoCapLeft	= shift<cap_left >(promoting & ~FileA) & opponent;
+		uint64_t promoCapRight	= shift<cap_right>(promoting & ~FileH) & opponent;
 		if constexpr (type == EVASIONS) {
 			promoPush		&= block;
 			promoCapLeft	&= checker;

@@ -2,6 +2,36 @@
 #include "sdl.h"
 #include "string"
 
+enum Direction {
+	NORTH,
+	SOUTH,
+	WEST,
+	EAST,
+	NORTH_WEST,
+	NORTH_EAST,
+	SOUTH_WEST,
+	SOUTH_EAST
+};
+
+constexpr uint64_t FileA = 0x0101010101010101ULL;
+constexpr uint64_t FileB = FileA << 1;
+constexpr uint64_t FileC = FileA << 2;
+constexpr uint64_t FileD = FileA << 3;
+constexpr uint64_t FileE = FileA << 4;
+constexpr uint64_t FileF = FileA << 5;
+constexpr uint64_t FileG = FileA << 6;
+constexpr uint64_t FileH = FileA << 7;
+
+constexpr uint64_t Rank1 = 0xFF;
+constexpr uint64_t Rank2 = Rank1 << (8 * 1);
+constexpr uint64_t Rank3 = Rank1 << (8 * 2);
+constexpr uint64_t Rank4 = Rank1 << (8 * 3);
+constexpr uint64_t Rank5 = Rank1 << (8 * 4);
+constexpr uint64_t Rank6 = Rank1 << (8 * 5);
+constexpr uint64_t Rank7 = Rank1 << (8 * 6);
+constexpr uint64_t Rank8 = Rank1 << (8 * 7);
+
+
 struct Position {
 	uint64_t pieceBoards[12] = {};
 	uint64_t teamBoards[3] = {};
@@ -122,6 +152,16 @@ struct Position_list {
 		curr_pos = *_curr_pos;
 	};
 };
+
+template<Direction D>
+constexpr uint64_t shift(uint64_t b) {
+	return  D == NORTH ? b >> 8 : D == SOUTH ? b << 8
+		: D == NORTH + NORTH ? b >> 16 : D == SOUTH + SOUTH ? b << 16
+		: D == EAST ? (b & ~FileH) << 1 : D == WEST ? (b & ~FileA) >> 1
+		: D == NORTH_EAST ? (b & ~FileH) >> 7 : D == NORTH_WEST ? (b & ~FileA) >> 9
+		: D == SOUTH_EAST ? (b & ~FileH) << 9 : D == SOUTH_WEST ? (b & ~FileA) << 7
+		: 0;
+}
 
 
 struct Best_move_ {

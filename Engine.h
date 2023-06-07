@@ -59,6 +59,8 @@ public:
 	void update_attack2(Position* pos);
 	template<bool>
 	void in_check_masks2(Position* pos);
+	template<bool whiteToMove>
+	void en_passant2(Position* pos, int pushedPawn);
 	inline uint64_t get_block(uint32_t king, uint32_t checker);
 
 	void player_make_move(const uint32_t move);

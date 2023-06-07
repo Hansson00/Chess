@@ -72,14 +72,14 @@ double Evaluation::eval_pawn_structure(Position* pos) {
 	const int b_blockers_for_king = bit_count(king_attacks[w_king] & pos->teamBoards[2]);
 
 	//Number of squares enemy sliders can attack from
-	const int w_open_line_danger = long_bit_scan(queen_attacks(board, w_king));
-	const int b_open_line_danger = long_bit_scan(queen_attacks(board, b_king));
+	//const int w_open_line_danger = long_bit_scan(queen_attacks(board, w_king));
+	//const int b_open_line_danger = long_bit_scan(queen_attacks(board, b_king));
 
 	//Space advantage
 	const int space = pos->whiteToMove ? bit_count(central_white_squares & ~pos->blackAttack): 
 										 bit_count(central_black_squares & ~pos->whiteAttack);
 
-	return 0.5*(w_blockers_for_king - b_blockers_for_king) + 0.1*(b_open_line_danger - w_open_line_danger);
+	return 0.5 * (w_blockers_for_king - b_blockers_for_king); //+ 0.1*(b_open_line_danger - w_open_line_danger);
 }
 
 

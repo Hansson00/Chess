@@ -7,6 +7,7 @@ struct Position {
 	uint64_t teamBoards[3] = {};
 	uint64_t whiteAttack = 0;
 	uint64_t blackAttack = 0;
+	uint64_t king_squares = 0;
 	uint64_t pinnedPieces = 0;
 	uint64_t block_check = 0;
 	uint64_t checker = 0;
@@ -27,6 +28,10 @@ struct Position {
 	}
 };
 
+struct Undo{
+
+};
+
 
 void parse_move(uint16_t);
 uint32_t bit_scan(uint32_t);
@@ -35,6 +40,10 @@ uint32_t high_bit_scan(int32_t i);
 uint32_t long_high_bit_scan(uint64_t i);
 void print_bit_board(uint64_t b);
 uint32_t bit_count(uint64_t i);
+uint32_t test_bit_scan(uint64_t i);
+
+
+
 
 //Wrapper to easily keep track of the move_list and some useful functions
 struct Move_list {
@@ -97,7 +106,7 @@ struct Move_list {
 		//delete(move_list);
 	}
 	void clear() {last = move_list;}
-	void add_move(const uint32_t move) { *last++ = move; }
+	inline void add_move(const uint32_t move) { *last++ = move; }
 	uint16_t to_sq(const uint32_t move) const { return (uint32_t)(move & 0x3F); }
 	uint16_t from_sq(const uint32_t move) const { return uint32_t((move >> 6) & 0x3F); }
 	uint16_t flags(const uint32_t move) const { return (uint16_t)(move >> 12); }

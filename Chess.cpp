@@ -39,8 +39,8 @@ void Chess::events() {
                 window->flip = !window->flip;
                 break;
             case SDLK_1:
-                engine->player_make_move(generate_moves(engine->pos));
-                play_sound();
+                //engine->player_make_move(generate_moves(engine->pos));
+                //play_sound();
                 break;
             case SDLK_2:
                 engine->player_make_move(engine->find_best_move(12, &engine->pos));
@@ -99,6 +99,7 @@ void Chess::draw() {
     //window->draw_texture_at_square(engine->move_squares(engine->pos.whiteAttack, window->attack_square);
     window->draw_texture_at_square(1ULL << (engine -> move_highlight & 0x3F), window->move_square);
     window->draw_texture_at_square(1ULL << (engine -> move_highlight >> 6), window->move_square);
+    window->draw_texture_at_square(engine->pos.king_squares, window->move_square);
     
     window->draw_pieces(engine->pos.pieceBoards, held_piece_board);
     if (held_piece != 255) {
@@ -238,7 +239,7 @@ static std::string get_input(bool* bl) {
     *bl = true;
     return answer;
 }
-
+/*
 uint32_t Chess::generate_moves(const Position& pos)
 {
     using namespace std::chrono;
@@ -264,11 +265,13 @@ uint32_t Chess::generate_moves(const Position& pos)
     std::cout << "Finished at a depth of: " << depth - 1 << std::endl << std::endl;
     return deepest;
 
-}
+}*/
 
-uint32_t Chess::_generate_moves_wrapper(const Position& pos, int depth, bool* done, bool* run)
+/*
+* uint32_t Chess::_generate_moves_wrapper(const Position& pos, int depth, bool* done, bool* run)
 {
     uint32_t eval = engine->find_best_move_th(depth, &engine->pos, run);
     *done = true;
     return eval;
 }
+*/

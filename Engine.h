@@ -9,6 +9,7 @@
 #include "Evaluation.h"
 #include "queue"
 #include "Opening_book.h"
+#include <cassert>
 
 uint64_t hash_pos(Position* pos);
 
@@ -44,12 +45,21 @@ public:
 
 	uint32_t hash_hits = 0;
 
+	template<bool whiteToMove>
+	void get_moves(Position* pos, Move_list* move_list);
 	void get_legal_moves(Position* pos, Move_list* move_list);
+
 	uint64_t generate_held_piece_moves(uint16_t p, Position* pos, uint64_t mask);
 
 	void make_move(Position* pos, uint32_t move);
 	void undo_move(Position* current, Position* perv);
 	void update_attack(Position* pos);
+
+	template<bool>
+	void update_attack2(Position* pos);
+	template<bool>
+	void in_check_masks2(Position* pos);
+	inline uint64_t get_block(uint32_t king, uint32_t checker);
 
 	void player_make_move(const uint32_t move);
 	void player_undo_move();
@@ -76,9 +86,9 @@ private:
 	void filter_pins(Move_list* move_list, Position* pos);
 	const uint64_t pinned_ray(int king, int piece);
 	void castle(Position* pos, uint64_t from, uint64_t to);
-
-	void (Move_Generator::* arr[6])(Move_list*, Position*) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves,
-	&Move_Generator::generate_bishop_moves, &Move_Generator::generate_rook_moves, &Move_Generator::generate_queen_moves };
+	
+	//void (Move_Generator::* arr[6])(Move_list*, Position*) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves,
+	//&Move_Generator::generate_bishop_moves, &Move_Generator::generate_rook_moves, &Move_Generator::generate_queen_moves };
 	void fenInit(Position* pos, std::string);
 
 	uint64_t hash_table[12][64];

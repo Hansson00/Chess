@@ -39,6 +39,8 @@ private:
 	
 	bool running = true;
 	uint64_t held_piece_board = 0;
+
+
 	void mouse_event(uint8_t button, bool mouse_down);
 
 	//This funtion can only add or remove one piece at a time

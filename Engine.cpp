@@ -3,11 +3,11 @@ using namespace std;
 
 Engine::Engine() {
 
-    fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     //fenInit(&pos, "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2");
-    //fenInit(&pos, "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    //fenInit(&pos, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
     //fenInit(&pos, "rnbqkbnr/p1pppppp/8/8/P6P/R1p5/1P1PPPP1/1NBQKBNR b Kkq - 0 4");
-    //rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2;
+    fenInit(&pos, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
 
     init_hashtable(&pos);
     op = new Opening_book();
@@ -21,15 +21,32 @@ Engine::~Engine() {
 
 
 //Generates all legal move in current game state, and stores them in provided Move_list
+
 void Engine::get_legal_moves(Position* pos, Move_list* move_list) {
-    generate_king_moves(move_list, pos);
-    if (pos->numCheckers > 1) //Only king moves are legal
-        return;
-    generate_pawn_moves(move_list, pos);
-    generate_knight_moves(move_list, pos);
-    generate_bishop_moves(move_list, pos);
-    generate_rook_moves(move_list, pos);
-    generate_queen_moves(move_list, pos);
+    const bool side = pos->whiteToMove;
+    side ? get_moves<true>(pos, move_list) : get_moves<false>(pos, move_list);
+}
+
+template<bool whiteToMove>
+void Engine::get_moves(Position* pos, Move_list* move_list) {
+    if (pos->numCheckers > 0) {
+        generate_king_moves<whiteToMove>(move_list, pos);
+        if (pos->numCheckers > 1) //Only king moves are legal
+            return;
+        generate_pawn_moves <whiteToMove, EVASIONS        >(move_list, pos);
+        generate_piece_moves<whiteToMove, EVASIONS, Knight>(move_list, pos);
+        generate_piece_moves<whiteToMove, EVASIONS, Bishop>(move_list, pos);
+        generate_piece_moves<whiteToMove, EVASIONS, Rook  >(move_list, pos);
+        generate_piece_moves<whiteToMove, EVASIONS, Queen >(move_list, pos);
+    }
+    else {
+        generate_king_moves<whiteToMove>(move_list, pos);
+        generate_pawn_moves <whiteToMove, QUIET        >(move_list, pos);
+        generate_piece_moves<whiteToMove, QUIET, Knight>(move_list, pos);
+        generate_piece_moves<whiteToMove, QUIET, Bishop>(move_list, pos);
+        generate_piece_moves<whiteToMove, QUIET, Rook  >(move_list, pos);
+        generate_piece_moves<whiteToMove, QUIET, Queen >(move_list, pos);
+    }
 
     if (pos->pinnedPieces != 0) { //Filter out pinned moves
         filter_pins(move_list, pos);
@@ -40,10 +57,8 @@ void Engine::get_legal_moves(Position* pos, Move_list* move_list) {
 uint64_t Engine::generate_held_piece_moves(uint16_t p_type, Position* pos, uint64_t mask) {
 
     Move_list move_list;
-    (this->*arr[p_type % 6])(&move_list, pos);
-    if (pos->pinnedPieces != 0) {
-        filter_pins(&move_list, pos);
-    }
+    get_legal_moves(pos, &move_list);
+
     uint64_t result = 0ULL;
 
     uint32_t piece_pos = long_bit_scan(mask);
@@ -106,7 +121,7 @@ uint32_t Engine::find_best_move(int depth, Position* pos) {
     //cout << endl << endl;
     return best_move;
 }
-
+/*
 int Engine::search_eval(int depth, Position* pos) {
     if (depth == 0)
         return Evaluate(pos);
@@ -130,6 +145,8 @@ int Engine::search_eval(int depth, Position* pos) {
     }
     return best_eval;
 }
+*/
+
 
 double Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
     if (depth == 0)
@@ -158,7 +175,7 @@ double Engine::search_eval2(int depth, int alpha, int beta, Position* pos) {
     return alpha;
 }
 
-uint32_t Engine::find_best_move_th(int depth, Position* pos, bool* run) {
+/*uint32_t Engine::find_best_move_th(int depth, Position* pos, bool* run) {
     if (depth == 0)
         return Evaluate(pos);
     Move_list moves;
@@ -189,9 +206,10 @@ uint32_t Engine::find_best_move_th(int depth, Position* pos, bool* run) {
     }
     //cout << endl << endl;
     return best_move;
-}
+}*/
 
-int Engine::search_eval2_th(int depth, int alpha, int beta, Position* pos, bool* run) {
+/*
+* int Engine::search_eval2_th(int depth, int alpha, int beta, Position* pos, bool* run) {
     if (depth == 0)
         return Evaluate(pos);
     Move_list moves;
@@ -217,6 +235,8 @@ int Engine::search_eval2_th(int depth, int alpha, int beta, Position* pos, bool*
     }
     return alpha;
 }
+*/
+
 
 
 //THIS IS SOME SHIT CODE
@@ -487,12 +507,96 @@ void Engine::make_move(Position* pos, uint32_t move) {
 
     pos->whiteToMove = !pos->whiteToMove;
     pos->moves++;
-    update_attack(pos);
+    //update_attack(pos);
+    if (white_to_move)
+        update_attack2<false>(pos);
+    else
+        update_attack2<true>(pos);
 }
 
 void Engine::undo_move(Position* current, Position* perv) {
     *current = *perv;
 }
+
+//Maybe not do these if-statements and use 
+//constexprs in the beginning since code is very similar
+template<bool whiteToMove>
+void Engine::update_attack2(Position* pos) {
+    /*TODOs:
+    * get surrounding squares
+    * find if any piece, king or pawn attacks those squares
+    */
+    pos->numCheckers = 0;
+    pos->pinnedPieces = 0ULL;
+    pos->checker = ~0ULL;
+    pos->block_check = 0;
+
+    if constexpr (whiteToMove) {
+        //Get surrounding king squares
+        const uint64_t king = pos->pieceBoards[0];
+        uint64_t king_squares = king_proximity[long_bit_scan(king)];
+        //Remove squares attacked by knights pawns and other king
+        //king_squares &= ~king_attacks[long_bit_scan(pos->pieceBoards[6])];
+        king_squares &= ~(shift<SOUTH_EAST>(pos->pieceBoards[7]) |
+            shift<SOUTH_WEST>(pos->pieceBoards[7]));
+        king_squares &= ~piece_attacks<Knight>(0, pos->pieceBoards[8]);
+
+        //Friendly pieces will block the kings way
+        const uint64_t non_king = ~pos->pieceBoards[0];
+        const uint64_t board_without_king = pos->teamBoards[0] & non_king;
+        king_squares &= ~(pos->teamBoards[1] & non_king);
+        //Sliding pieces
+        uint64_t iter_king_squares = king_squares;
+       
+        //Sliding pieces need to check one square at the time
+        while (iter_king_squares) {
+            const uint32_t slider = long_bit_scan(iter_king_squares);
+            const bool rook = piece_attacking<Rook>(board_without_king, slider) & (pos->pieceBoards[10] | pos->pieceBoards[11]);
+            const bool bishop = piece_attacking<Bishop>(board_without_king, slider) & (pos->pieceBoards[9] | pos->pieceBoards[11]);
+            king_squares &= (~0ULL * !(rook || bishop)) | ~(1ULL << slider); //No change if there is no rooks or queens
+            print_bit_board(king_squares);
+            iter_king_squares &= iter_king_squares - 1;
+        }
+        pos->king_squares = king_squares;
+        //In check
+        if ((king_squares & pos->pieceBoards[0]) == 0) {
+            in_check_masks2<true>(pos);
+        }
+    }
+    if constexpr (!whiteToMove) {
+        //Get surrounding king squares
+        const uint64_t king = pos->pieceBoards[6];
+        uint64_t king_squares = king_proximity[long_bit_scan(king)];
+        //Remove squares attacked by knights pawns and other king
+        //king_squares &= ~king_attacks[long_bit_scan(pos->pieceBoards[0])];
+        king_squares &= ~(shift<NORTH_EAST>(pos->pieceBoards[1]) |
+            shift<NORTH_WEST>(pos->pieceBoards[1]));
+        king_squares &= ~piece_attacks<Knight>(0, pos->pieceBoards[2]);
+
+        //Friendly pieces will block the kings way
+        const uint64_t non_king = ~pos->pieceBoards[6];
+        const uint64_t board_without_king = pos->teamBoards[0] & non_king;
+        king_squares &= ~(pos->teamBoards[2] & non_king);
+
+        //Sliding pieces
+        uint64_t iter_king_squares = king_squares;
+        //Sliding pieces need to check one square at the time
+        while (iter_king_squares) {
+            const uint32_t slider = long_bit_scan(iter_king_squares);
+            const bool rook = piece_attacking<Rook>(board_without_king, slider) & (pos->pieceBoards[4] | pos->pieceBoards[5]);
+            const bool bishop = piece_attacking<Bishop>(board_without_king, slider) & (pos->pieceBoards[3] | pos->pieceBoards[5]);
+            king_squares &= (~0ULL * !(rook || bishop)) | ~(1ULL << slider); //No change if there is no rooks or queens
+            iter_king_squares &= iter_king_squares - 1;
+        }
+        pos->king_squares = king_squares;
+        if ((king_squares & pos->pieceBoards[6]) == 0) {
+            in_check_masks2<false>(pos);
+        }
+    }
+
+    find_pins(pos);
+}
+
 
 void Engine::update_attack(Position* pos) {
     pos->numCheckers = 0;
@@ -505,10 +609,10 @@ void Engine::update_attack(Position* pos) {
         const uint64_t board_without_king = pos->teamBoards[0] & ~pos->pieceBoards[0];
         black_attack |= king_attacks[king_pos];
         black_attack |= pawn_attacks(pos->pieceBoards[7], false);
-        black_attack |= piece_attacks(pos->teamBoards[0], pos->pieceBoards[8], 0);
-        black_attack |= piece_attacks(board_without_king, pos->pieceBoards[9], 1);
-        black_attack |= piece_attacks(board_without_king, pos->pieceBoards[10], 2);
-        black_attack |= piece_attacks(board_without_king, pos->pieceBoards[11], 3);
+        black_attack |= piece_attacks<Knight>(pos->teamBoards[0], pos->pieceBoards[8]);
+        black_attack |= piece_attacks<Bishop>(board_without_king, pos->pieceBoards[9]);
+        black_attack |= piece_attacks<Rook  >(board_without_king, pos->pieceBoards[10]);
+        black_attack |= piece_attacks<Queen >(board_without_king, pos->pieceBoards[11]);
         pos->blackAttack = black_attack;
         if ((black_attack & pos->pieceBoards[0]) != 0) { //Intersection with king gives check
             in_check_masks(pos, true);
@@ -521,10 +625,10 @@ void Engine::update_attack(Position* pos) {
         const uint64_t board_without_king = pos->teamBoards[0] & ~pos->pieceBoards[6];
         white_attack |= king_attacks[king_pos];
         white_attack |= pawn_attacks(pos->pieceBoards[1], true);
-        white_attack |= piece_attacks(pos->teamBoards[0], pos->pieceBoards[2], 0);
-        white_attack |= piece_attacks(board_without_king, pos->pieceBoards[3], 1);
-        white_attack |= piece_attacks(board_without_king, pos->pieceBoards[4], 2);
-        white_attack |= piece_attacks(board_without_king, pos->pieceBoards[5], 3);
+        white_attack |= piece_attacks<Knight>(pos->teamBoards[0], pos->pieceBoards[2]);
+        white_attack |= piece_attacks<Bishop>(board_without_king, pos->pieceBoards[3]);
+        white_attack |= piece_attacks<Rook  >(board_without_king, pos->pieceBoards[4]);
+        white_attack |= piece_attacks<Queen >(board_without_king, pos->pieceBoards[5]);
         pos->whiteAttack = white_attack;
         if ((white_attack & pos->pieceBoards[6]) != 0) { //Intersection with king gives check
             in_check_masks(pos, false);
@@ -594,7 +698,7 @@ void Engine::filter_pins(Move_list* move_list, Position* pos) {
 
 
 //Find the ray in which the piece is able to move
-const uint64_t Engine::pinned_ray(int king, int piece) {
+const uint64_t Engine::pinned_ray (int king, int piece) {
     //On the same rank
     if (king / 8 == piece / 8)
         return ranks[king / 8];
@@ -623,6 +727,59 @@ void Engine::castle(Position* pos, uint64_t rook, uint64_t to) {
 
 }
 
+template<bool whiteInCheck>
+void Engine::in_check_masks2(Position* pos) { //TODO: find pins at the same time
+    constexpr int king_id = whiteInCheck ? 0 : 6;
+    constexpr int offset = whiteInCheck ? 6 : 0;
+    constexpr Direction pawnLeft = whiteInCheck ? NORTH_EAST : SOUTH_EAST;
+    constexpr Direction pawnRight = whiteInCheck ? NORTH_WEST : SOUTH_WEST;
+    
+    
+    const uint64_t king  = pos->pieceBoards[king_id];
+    const uint32_t king_pos = long_bit_scan(king);
+    const uint64_t board = pos->teamBoards[0];
+    const uint64_t pawnCheck = (shift<pawnLeft>(king) | shift<pawnLeft>(king))
+                                & pos->pieceBoards[1 + offset];
+    const uint64_t knightCheck = piece_attacking<Knight>(0, king_pos) & pos->pieceBoards[2 + offset];
+    const uint64_t bishopCheck = piece_attacking<Bishop>(board, king_pos) & 
+                                    (pos->pieceBoards[3 + offset] | pos->pieceBoards[5 + offset]);
+    const uint64_t rookCheck   = piece_attacking<Rook>(board, king_pos) &
+                                    (pos->pieceBoards[4 + offset] | pos->pieceBoards[5 + offset]);
+    //Would be fun to make something like this happen
+    //const int checkers = (bool)pawnCheck + (bool)knightCheck + (bool)bishopCheck + (bool)rookCheck;
+    uint64_t checker = 0ULL;
+    uint64_t block = 0ULL;
+
+    if (knightCheck != 0) { checker = knightCheck; pos->numCheckers++; }
+    else if (pawnCheck != 0) { checker = pawnCheck; pos->numCheckers++; }
+    if (bishopCheck != 0) {
+        //Bishop or queen is checking
+        checker = bishopCheck;
+        //Find block mask
+        block = get_block(king_pos, long_bit_scan(bishopCheck));
+        pos->numCheckers++;
+    }
+    if (rookCheck != 0) {
+        //Rook or queen check
+        checker = rookCheck;
+        //Find block mask
+        block = get_block(king_pos, long_bit_scan(rookCheck));
+        pos->numCheckers++;
+    }
+    
+    pos->block_check = block;
+    pos->checker = checker;
+}
+
+inline uint64_t Engine::get_block(uint32_t king, uint32_t checker) {
+    const uint64_t ray = pinned_ray(king, checker);
+    if (king > checker)
+        return ray & lower_bits[king] & upper_bits[checker];
+    return ray & upper_bits[king] & lower_bits[checker];
+}
+
+
+
 //Set check evasion square in the position object-> Is used to find legal moves when in check
 void Engine::in_check_masks(Position* pos, bool white_in_check) {
     const int piece_offset = white_in_check ? 6 : 0;
@@ -632,9 +789,9 @@ void Engine::in_check_masks(Position* pos, bool white_in_check) {
     uint64_t block = 0ULL;
 
     uint64_t pawnCheck = pawn_attacks(king, white_in_check) & pos->pieceBoards[1 + piece_offset];
-    uint64_t knightCheck = piece_attacks(board, king, 0) & pos->pieceBoards[2 + piece_offset];
-    uint64_t diagonalCheck = piece_attacks(board, king, 1) & (pos->pieceBoards[3 + piece_offset] | pos->pieceBoards[5 + piece_offset]);
-    uint64_t straightCheck = piece_attacks(board, king, 2) & (pos->pieceBoards[4 + piece_offset] | pos->pieceBoards[5 + piece_offset]);
+    uint64_t knightCheck = piece_attacks<Knight>(board, king) & pos->pieceBoards[2 + piece_offset];
+    uint64_t diagonalCheck = piece_attacks<Bishop>(board, king) & (pos->pieceBoards[3 + piece_offset] | pos->pieceBoards[5 + piece_offset]);
+    uint64_t straightCheck = piece_attacks<Rook>(board, king) & (pos->pieceBoards[4 + piece_offset] | pos->pieceBoards[5 + piece_offset]);
 
     //If there are more than one checker this will not matter since only king moves are possible
     if (knightCheck != 0) { checker = knightCheck; pos->numCheckers++; }
@@ -667,8 +824,8 @@ void Engine::en_passant(Position* pos, int pushedPawn) {
         uint64_t sliders = pos->pieceBoards[4] | pos->pieceBoards[5];
         //If any of the slider occupy the fifth rank then we need to check for pin
         if ((sliders & 0xFF00000000L) > 0) {
-            uint64_t slideAttack = piece_attacks(pos->teamBoards[0], sliders, 6);
-            uint64_t kingAttack = piece_attacks(pos->teamBoards[0], pos->pieceBoards[6], 6);
+            uint64_t slideAttack = piece_attacks<Rank>(pos->teamBoards[0], sliders);
+            uint64_t kingAttack = piece_attacks<Rank>(pos->teamBoards[0], pos->pieceBoards[6]);
             uint64_t pawnPos = 1ULL << pushedPawn;
             //If either the king or sliders see the en passant pawn then a possible pin is there
             if ((slideAttack & pawnPos) != 0) {
@@ -692,8 +849,8 @@ void Engine::en_passant(Position* pos, int pushedPawn) {
         uint64_t sliders = pos->pieceBoards[10] | pos->pieceBoards[11];
         //If any of the slider occupy the forth rank then we need to check for pin
         if ((sliders & 0xFF000000L) > 0) {
-            uint64_t slideAttack = piece_attacks(pos->teamBoards[0], sliders, 6);
-            uint64_t kingAttack = piece_attacks(pos->teamBoards[0], pos->pieceBoards[0], 6);
+            uint64_t slideAttack = piece_attacks<Rank>(pos->teamBoards[0], sliders);
+            uint64_t kingAttack = piece_attacks<Rank>(pos->teamBoards[0], pos->pieceBoards[0]);
             uint64_t pawnPos = 1ULL << pushedPawn;
             //If either the king or sliders see the en passant pawn then a possible pin is there
             if ((slideAttack & pawnPos) != 0) {
@@ -763,24 +920,24 @@ void Engine::find_pins(Position* pos) {
     uint64_t nSameMask = white_to_move ? ~pos->teamBoards[2] : ~pos->teamBoards[1];
     const uint64_t board = pos->teamBoards[0];
     if (relevant_main != 0) {
-        const uint64_t piece = piece_attacks(board, relevant_main, 4) & nSameMask;
-        const uint64_t king = piece_attacks(board, king_board, 4);
-        pos->pinnedPieces |= piece & king; //If the king and the sliding pieces attack the same piece then it is pinned
+        const uint64_t piece    = piece_attacks<MainD>(board, relevant_main) & nSameMask;
+        const uint64_t king     = piece_attacks<MainD>(board, king_board);
+        pos->pinnedPieces      |= piece & king; //If the king and the sliding pieces attack the same piece then it is pinned
     }
     if (relevant_anti != 0) {
-        const uint64_t piece = piece_attacks(board, relevant_anti, 5) & nSameMask;
-        const uint64_t king = piece_attacks(board, king_board, 5);
-        pos->pinnedPieces |= piece & king; //If the king and the sliding pieces attack the same piece then it is pinned
+        const uint64_t piece    = piece_attacks<AntiD>(board, relevant_anti) & nSameMask;
+        const uint64_t king     = piece_attacks<AntiD>(board, king_board);
+        pos->pinnedPieces      |= piece & king; //If the king and the sliding pieces attack the same piece then it is pinned
     }
     if (relevant_rank != 0) {
-        const uint64_t piece = piece_attacks(board, relevant_rank, 6) & nSameMask;
-        const uint64_t king = piece_attacks(board, king_board, 6);
-        pos->pinnedPieces |= piece & king; //If the king and the sliding pieces attack the same piece then it is pinned
+        const uint64_t piece    = piece_attacks<Rank>(board, relevant_rank) & nSameMask;
+        const uint64_t king     = piece_attacks<Rank>(board, king_board);
+        pos->pinnedPieces      |= piece & king; //If the king and the sliding pieces attack the same piece then it is pinned
     }
     if (relevant_file != 0) {
-        const uint64_t piece = piece_attacks(board, relevant_file, 7) & nSameMask;
-        const uint64_t king = piece_attacks(board, king_board, 7);
-        pos->pinnedPieces |= piece & king; //If the king and the sliding pieces attack the same piece then it is pinned
+        const uint64_t piece    = piece_attacks<File>(board, relevant_file) & nSameMask;
+        const uint64_t king     = piece_attacks<File>(board, king_board);
+        pos->pinnedPieces      |= piece & king; //If the king and the sliding pieces attack the same piece then it is pinned
     }
 }
 
@@ -827,5 +984,9 @@ void Engine::fenInit(Position* pos, std::string fen) {
     pos->teamBoards[0] = pos->teamBoards[1] | pos->teamBoards[2];
     pos->enPassant = 0xFF;
     Engine::update_attack(pos);
+    if (pos->whiteToMove)
+        update_attack2<true>(pos);
+    else
+        update_attack2<false>(pos);
     p_list = new Position_list(nullptr, pos);
 }

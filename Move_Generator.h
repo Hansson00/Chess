@@ -3,6 +3,35 @@
 #include "Chess_utility.h"
 
 typedef void(*FunctionPointer)();
+enum GenType {
+	CAPTURES,
+	EVASIONS,
+	QUIET
+};
+
+enum Piece {
+	King = 0,
+	Pawn = 1,
+	Knight = 2,
+	Bishop = 3,
+	Rook = 4,
+	Queen = 5,
+	Rank,
+	File,
+	MainD,
+	AntiD,
+};
+
+enum Direction {
+	NORTH,
+	SOUTH,
+	WEST,
+	EAST,
+	NORTH_WEST,
+	NORTH_EAST,
+	SOUTH_WEST,
+	SOUTH_EAST
+};
 
 class Move_Generator {
 public:
@@ -10,32 +39,75 @@ public:
 	~Move_Generator();
 	//uint16_t* generate_held_piece_moves(uint16_t* move_list, uint16_t p, Position* pos ,uint64_t mask, bool white);
 
+
 	//Functions to generate each kind of piece moves
-	void generate_pawn_moves(Move_list* move_list, Position* pos);
+	/*
+
+	template<bool, GenType>
 	void generate_knight_moves(Move_list* move_list, Position* pos);
-	void generate_king_moves(Move_list* move_list, Position* pos);
+
+	template<bool, GenType>
 	void generate_bishop_moves(Move_list* move_list, Position* pos);
-	void generate_queen_moves(Move_list* move_list, Position* pos);
+	template<bool, GenType>
 	void generate_rook_moves(Move_list* move_list, Position* pos);
-	void generate_sliding_moves(Move_list* move_list, uint64_t board, uint64_t moves, uint32_t piece);
+	*/
+	template<bool>
+	void generate_king_moves(Move_list* move_list, Position* pos);
+	template <bool, GenType>
+	void generate_pawn_moves(Move_list* move_list, Position* pos);
+	template<bool, GenType, Piece>
+	void generate_piece_moves(Move_list* move_list, Position* pos);
+	inline void generate_moves(Move_list* move_list, uint64_t board, uint64_t moves, uint32_t piece);
 	
 	uint64_t king_attacks[64];
+	uint64_t king_proximity[64];
+
+
+	
 
 protected:
+	template<Piece p>
+	uint64_t piece_attacking(uint64_t board, uint32_t piece);
+	template<Piece p>
+	uint64_t piece_attacks(uint64_t board, uint64_t pieces);
+
 	void add_promotion(Move_list* move_list, uint32_t move);
-	const uint64_t shift_up(uint64_t pawns, bool white);
-	const uint64_t shift_side(uint64_t pawns, bool right, bool white);
-	uint64_t piece_attacks(uint64_t board, uint64_t pieces, int piece_pos);
+	//const uint64_t shift_up(uint64_t pawns, bool white);
+	//const uint64_t shift_side(uint64_t pawns, bool right, bool white);
+	
 	const uint64_t pawn_attacks(uint64_t pawns, bool white);
 	uint64_t knight_attacks(uint64_t board, int knight_pos);
+	/*
 	uint64_t rook_attacks(uint64_t board, int rook_pos);
 	uint64_t bishop_attacks(uint64_t board, int bishop_pos);
 	uint64_t queen_attacks(uint64_t board, int queen_pos);
+	*/
+
 	void init_knight_attacks();
 	void init_king_attacks();
 	
 	uint64_t file_attacks(uint64_t board, int rook_pos);
 	uint64_t rank_attacks(uint64_t board, int rook_pos);
+	
+	static constexpr uint64_t FileA = 0x0101010101010101ULL;
+	static constexpr uint64_t FileB = FileA << 1;
+	static constexpr uint64_t FileC = FileA << 2;
+	static constexpr uint64_t FileD = FileA << 3;
+	static constexpr uint64_t FileE = FileA << 4;
+	static constexpr uint64_t FileF = FileA << 5;
+	static constexpr uint64_t FileG = FileA << 6;
+	static constexpr uint64_t FileH = FileA << 7;
+
+	static constexpr uint64_t Rank1 = 0xFF;
+	static constexpr uint64_t Rank2 = Rank1 << (8 * 1);
+	static constexpr uint64_t Rank3 = Rank1 << (8 * 2);
+	static constexpr uint64_t Rank4 = Rank1 << (8 * 3);
+	static constexpr uint64_t Rank5 = Rank1 << (8 * 4);
+	static constexpr uint64_t Rank6 = Rank1 << (8 * 5);
+	static constexpr uint64_t Rank7 = Rank1 << (8 * 6);
+	static constexpr uint64_t Rank8 = Rank1 << (8 * 7);
+
+
 	uint64_t files[8] = { 0x0101010101010101ULL, 0x0202020202020202ULL, 0x0404040404040404ULL,
 		0x0808080808080808ULL, 0x1010101010101010ULL, 0x2020202020202020ULL, 0x4040404040404040ULL,
 		0x8080808080808080ULL };
@@ -47,18 +119,35 @@ protected:
 	uint64_t anti_diagonals[15] = { 0x1ULL, 0x0102ULL, 0x010204ULL, 0x01020408ULL, 0x0102040810ULL, 0x010204081020ULL, 0x01020408102040ULL,
 			0x0102040810204080ULL, 0x0204081020408000ULL, 0x0408102040800000ULL, 0x0810204080000000ULL, 0x1020408000000000ULL,
 			0x2040800000000000ULL, 0x4080000000000000ULL, 0x8000000000000000ULL };
+	uint64_t lower_bits[64];
+	uint64_t upper_bits[64];
+	template<Direction D>
+	constexpr uint64_t shift(uint64_t b) {
+		return  D == NORTH ? b >> 8 : D == SOUTH ? b << 8
+			: D == NORTH + NORTH ? b >> 16 : D == SOUTH + SOUTH ? b << 16
+			: D == EAST ? (b & ~files[7]) << 1 : D == WEST ? (b & ~files[0]) >> 1
+			: D == NORTH_EAST ? (b & ~files[7]) >> 7 : D == NORTH_WEST ? (b & ~files[0]) >> 9
+			: D == SOUTH_EAST ? (b & ~files[7]) << 9 : D == SOUTH_WEST ? (b & ~files[0]) << 7
+			: 0;
+	}
 
 private:
 
 	//uint16_t* (Move_Generator::* arr[6])(uint16_t*, Position*, bool) = { &Move_Generator::generate_king_moves, &Move_Generator::generate_pawn_moves, &Move_Generator::generate_knight_moves };
 	// = {&generate_king_moves, &generate_pawn_moves ,&generate_knight_moves, &generate_pawn_moves, &generate_pawn_moves, &generate_pawn_moves};
+
+
 	
+
+
+
+
 	uint32_t mask_bits[15] = {0,0,1,3,7,15,31,63,31,15,7,3,1,0,0};
 	uint64_t shifted_anti_diagonal = (1ULL) | (1ULL << 7) | (1ULL << 14) | (1ULL << 21) | (1ULL << 28) | (1ULL << 35) | (1ULL << 42) | (1ULL << 49);
 	
-	uint64_t (Move_Generator::* attack_function[8])(uint64_t, int) = {&Move_Generator::knight_attacks, &Move_Generator::bishop_attacks, 
+	/*	uint64_t (Move_Generator::* attack_function[8])(uint64_t, int) = {&Move_Generator::knight_attacks, &Move_Generator::bishop_attacks, 
 		&Move_Generator::rook_attacks, &Move_Generator::queen_attacks, &Move_Generator::maindiagonal_attacks, &Move_Generator::antidiagonal_attacks,
-		&Move_Generator::rank_attacks, &Move_Generator::file_attacks};
+		&Move_Generator::rank_attacks, &Move_Generator::file_attacks};*/
 
 	//ATTACK TABLES
 	uint64_t rook_attack_table[8][64];
@@ -82,6 +171,7 @@ private:
 	void init_row_attacks();
 	uint64_t set_maindiagonal_occupancy(uint64_t diagonal, uint32_t occupancy);
 	uint64_t set_antidiagonal_occupancy(uint64_t diagonal, uint32_t occupancy);
+	void init_bits();
 	
 
 
